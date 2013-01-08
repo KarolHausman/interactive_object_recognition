@@ -1,0 +1,20 @@
+#eclipse project files
+.project
+.pydevproject
+.cproject
+
+#c++ and ros crap
+bin
+build
+cmake_install.cmake
+*.cfgc
+lib
+srv_gen
+msg_gen
+
+#some data types
+*.pcd
+*.jpg
+
+#local copies 
+*~

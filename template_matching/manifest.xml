@@ -1,0 +1,26 @@
+<package>
+  <description brief="template_matching">
+
+     template_matching
+
+  </description>
+  <author>Karol Hausman</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/template_matching</url>
+  <depend package="roscpp"/>
+  <depend package="image_transport"/>
+  <depend package="tf"/>
+  <depend package="pcl"/>
+  <depend package="opencv2"/>
+  <depend package="cv_bridge"/>
+  <depend package="feature_cv_waitinglist"/>
+  <depend package="ransac_waitinglist"/>
+  <depend package="message_filters"/>
+  <depend package="dynamic_reconfigure"/>
+
+</package>
+
+
+
+
