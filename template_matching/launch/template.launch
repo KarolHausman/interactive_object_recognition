@@ -17,6 +17,7 @@
     <param name="/feature_matcher/matching_distance_ratio_threshold"  value="0.67"/>
     <param name="/feature_matcher/max_radius_search_dist"             value="400"/>
     <param name="/feature_matcher/tracking_matches"                   value="false"/>
+    <param name="/feature_matcher/drawing_template"                   value="true"/>
     <param name="/feature_matcher/tracking_threshold"                 value="0"/>
     <param name="/feature_matcher/distance_factor"                    value="0"/>
     <param name="/feature_matcher/feature_detector_parameter_name"    value="maxTotalKeypoints"/>
