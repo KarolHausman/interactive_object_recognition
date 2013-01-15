@@ -1,0 +1,11 @@
+\subsubsection usage Usage
+\verbatim
+<node name="ransac_waitinglist" pkg="ransac_waitinglist" type="ransac_waitinglist">
+  <param name="ransac_iterations" type="int" value="1000" />
+  <param name="pcl_matches_min_number" type="int" value="3" />
+  <param name="neighbor_distance_threshold" type="double" value="10.0" />
+  <param name="ransac_max_distance_inliers" type="double" value="3.0" />
+  <param name="refine_transform" type="bool" value="True" />
+</node>
+\endverbatim
+

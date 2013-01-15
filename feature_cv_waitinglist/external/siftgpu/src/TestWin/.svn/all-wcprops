@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin
+END
+TestWinGlut.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/TestWinGlut.h
+END
+BasicTestWin.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/BasicTestWin.cpp
+END
+SimpleSIFT.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/SimpleSIFT.cpp
+END
+GLTestWnd.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/GLTestWnd.h
+END
+speed.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/speed.cpp
+END
+GLTransform.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/GLTransform.h
+END
+BasicTestWin.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/BasicTestWin.h
+END
+MultiThreadSIFT.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/MultiThreadSIFT.cpp
+END
+TestWinGlut.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/TestWinGlut.cpp
+END
+GLTestWnd.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/seie2011fall/!svn/ver/449/kidson/rgbdslam/external/siftgpu/src/TestWin/GLTestWnd.cpp
+END

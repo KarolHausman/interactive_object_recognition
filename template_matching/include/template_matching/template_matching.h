@@ -11,6 +11,8 @@
 #include <image_transport/subscriber_filter.h>
 #include <message_filters/subscriber.h>
 
+#include <pcl/segmentation/sac_segmentation.h>
+
 #include <pcl/ros/conversions.h>
 #include <pcl/io/pcd_io.h>
 /*
@@ -32,6 +34,8 @@ public:
 private:
     cv::Mat restoreCVMatFromPointCloud (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_in_ptr);
 
+    cv::Mat restoreCVMatNoPlaneFromPointCloud (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_in_ptr);
+
     void cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg);
 
     void imageCallback (const sensor_msgs::ImageConstPtr & msg);
@@ -39,6 +43,9 @@ private:
     void publishTF(const Eigen::Matrix4f &transformation,const std::string &frame_id, const std::string &child_frame_id);
 
     void drawOnImage(const int &inliers, const int &matches, const double &frequency, cv::Mat &image);
+
+    void detectPlane(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_in_ptr, pcl::ModelCoefficients &coefficients,
+                                    pcl::PointIndices &inliers);
 
     FeatureMatching matcher_;
     RANSACTransformation ransac_transformer_;

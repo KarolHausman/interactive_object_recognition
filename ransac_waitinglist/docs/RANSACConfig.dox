@@ -1,0 +1,10 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~ransac_iterations" : \b [int] ransac_iterations min: 1, default: 1000, max: 1000
+- \b "~pcl_matches_min_number" : \b [int] pcl_matches_min_number min: 1, default: 3, max: 100
+- \b "~neighbor_distance_threshold" : \b [double] neighbor_distance_threshold min: 0.0, default: 10.0, max: 100.0
+- \b "~ransac_max_distance_inliers" : \b [double] ransac_max_distance_inliers min: 0.0, default: 3.0, max: 100.0
+- \b "~refine_transform" : \b [bool] refine_transform min: False, default: True, max: True
+

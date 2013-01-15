@@ -1,0 +1,29 @@
+\subsubsection usage Usage
+\verbatim
+<node name="feature_cv_waitinglist" pkg="feature_cv_waitinglist" type="feature_cv_waitinglist">
+  <param name="feature_detector" type="int" value="0" />
+  <param name="feature_extractor" type="int" value="0" />
+  <param name="descriptor_matcher" type="int" value="0" />
+  <param name="feature_detector_parameter_name" type="str" value="nFeatures" />
+  <param name="feature_detector_parameter_value" type="str" value="0" />
+  <param name="feature_extractor_parameter_name" type="str" value="nFeatures" />
+  <param name="feature_extractor_parameter_value" type="str" value="0" />
+  <param name="reduce_search_area" type="bool" value="True" />
+  <param name="search_distance" type="int" value="1" />
+  <param name="distinct_matches" type="bool" value="True" />
+  <param name="max_radius_search_dist" type="double" value="0.5" />
+  <param name="matching_distance_ratio_threshold" type="double" value="0.5" />
+  <param name="horizontal_matches" type="bool" value="False" />
+  <param name="horizontal_threshold" type="int" value="1" />
+  <param name="tracking_matches" type="bool" value="True" />
+  <param name="drawing_template" type="bool" value="False" />
+  <param name="retain_all_prev_matches" type="bool" value="True" />
+  <param name="double_check_tracking_matches" type="bool" value="True" />
+  <param name="min_tracking_matches" type="int" value="1" />
+  <param name="tracking_threshold" type="double" value="0.1" />
+  <param name="outlier_removal" type="bool" value="True" />
+  <param name="distance_factor" type="double" value="1.0" />
+  <param name="timing_debug" type="bool" value="False" />
+</node>
+\endverbatim
+
