@@ -28,7 +28,8 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
     publish_time_=ros::Time::now();
     template_image_ = cv::Mat (cvLoadImage (template_filename.c_str (), CV_LOAD_IMAGE_COLOR));
     pcl::io::loadPCDFile(cloud_name,*template_cloud_ptr_);
-    template_image_ = restoreCVMatNoPlaneFromPointCloud(template_cloud_ptr_);
+//    template_image_ = restoreCVMatNoPlaneFromPointCloud(template_cloud_ptr_);
+        template_image_ = restoreCVMatFromPointCloud(template_cloud_ptr_);
 
     //    subscriber_ = image_transport_.subscribe(subscribe_topic, 1, &TemplateMatcher::imageCallback, this);
     cloud_subscriber_ = nh.subscribe("/camera/depth_registered/points", 1, &TemplateMatcher::cloudCallback, this);
