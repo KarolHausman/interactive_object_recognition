@@ -23,13 +23,22 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
     ransac_transformer_(),
     image_transport_(nh),
     template_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>),
-    current_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZ>)
+    current_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZ>),
+    dense_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
+    dense_reconstructor_()
 {
     publish_time_=ros::Time::now();
     template_image_ = cv::Mat (cvLoadImage (template_filename.c_str (), CV_LOAD_IMAGE_COLOR));
     pcl::io::loadPCDFile(cloud_name,*template_cloud_ptr_);
-//    template_image_ = restoreCVMatNoPlaneFromPointCloud(template_cloud_ptr_);
-        template_image_ = restoreCVMatFromPointCloud(template_cloud_ptr_);
+    pcl::copyPointCloud(*template_cloud_ptr_,*dense_cloud_ptr_);
+    dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(dense_cloud_ptr_));
+    pcl::PointIndices indices_reconstruct;
+    dense_reconstructor_->activeSegmentation(*dense_cloud_ptr_,0.01f,89,100,indices_reconstruct);
+//    dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(dense_cloud_ptr_));
+//    dense_reconstructor_->reconstructDenseModel(1);
+
+    template_image_ = restoreCVMatNoPlaneFromPointCloud(template_cloud_ptr_);
+//    template_image_ = restoreCVMatFromPointCloud(template_cloud_ptr_);
 
     //    subscriber_ = image_transport_.subscribe(subscribe_topic, 1, &TemplateMatcher::imageCallback, this);
     cloud_subscriber_ = nh.subscribe("/camera/depth_registered/points", 1, &TemplateMatcher::cloudCallback, this);

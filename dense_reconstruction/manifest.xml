@@ -1,0 +1,22 @@
+<package>
+  <description brief="dense_reconstruction">
+
+     dense_reconstruction
+
+  </description>
+  <author>Karol Hausman</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/dense_reconstruction</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="cv_bridge"/>
+  <depend package="pcl"/>
+
+<export>
+  <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib"  />
+</export>
+</package>
+
+

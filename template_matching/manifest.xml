@@ -16,8 +16,10 @@
   <depend package="cv_bridge"/>
   <depend package="feature_cv_waitinglist"/>
   <depend package="ransac_waitinglist"/>
+  <depend package="dense_reconstruction"/>
   <depend package="message_filters"/>
   <depend package="dynamic_reconfigure"/>
+
 
 </package>
 
