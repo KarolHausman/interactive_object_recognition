@@ -1,7 +1,9 @@
 
 #include <ransac_waitinglist/ransac_transformation.h>
 #include <feature_cv_waitinglist/feature_matching.h>
-#include <dense_reconstruction/DenseReconstruction.h>
+//#include <dense_reconstruction/DenseReconstruction.h>
+#include <template_library/template_library.h>
+
 
 #include "ros/ros.h"
 
@@ -61,7 +63,8 @@ private:
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr template_cloud_ptr_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud_ptr_;
     pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr dense_cloud_ptr_;
-    boost::shared_ptr<DenseReconstruction<pcl::PointXYZLRegionF> > dense_reconstructor_;
+    TemplateLibrary template_library_;
+//    boost::shared_ptr<DenseReconstruction<pcl::PointXYZLRegionF> > dense_reconstructor_;
 
 };
 

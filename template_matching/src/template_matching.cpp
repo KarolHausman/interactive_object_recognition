@@ -25,15 +25,17 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
     template_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>),
     current_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZ>),
     dense_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
-    dense_reconstructor_()
+//    dense_reconstructor_(),
+    template_library_()
 {
     publish_time_=ros::Time::now();
     template_image_ = cv::Mat (cvLoadImage (template_filename.c_str (), CV_LOAD_IMAGE_COLOR));
     pcl::io::loadPCDFile(cloud_name,*template_cloud_ptr_);
-    pcl::copyPointCloud(*template_cloud_ptr_,*dense_cloud_ptr_);
-    dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(dense_cloud_ptr_));
-    pcl::PointIndices indices_reconstruct;
-    dense_reconstructor_->activeSegmentation(*dense_cloud_ptr_,0.01f,89,100,indices_reconstruct);
+    template_library_.generateTemplateData();
+//    pcl::copyPointCloud(*template_cloud_ptr_,*dense_cloud_ptr_);
+//    dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(dense_cloud_ptr_));
+//    pcl::PointIndices indices_reconstruct;
+//    dense_reconstructor_->activeSegmentation(*dense_cloud_ptr_,0.01f,89,100,indices_reconstruct);
 //    dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(dense_cloud_ptr_));
 //    dense_reconstructor_->reconstructDenseModel(1);
 

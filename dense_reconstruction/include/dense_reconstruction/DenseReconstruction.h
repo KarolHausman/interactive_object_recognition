@@ -45,46 +45,52 @@ public:
 		cloud_.reset(new pcl::PointCloud<PointType>(*saved_cloud));
 
 		if (plane_segmentation_) {
-			pcl::ModelCoefficients coefficients;
-			pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-			cloud_operational_.reset(new pcl::PointCloud<PointType>);
-			if (debug_)
-				pcl::io::savePCDFile("Aafter_beg.pcd", *cloud_);
-			planeSegmentation(cloud_, coefficients, *inliers);
-			planeExtraction(cloud_, inliers, *cloud_operational_);
+                    cloud_operational_.reset(new pcl::PointCloud<PointType>);
+                    pcl::copyPointCloud(*cloud_, *cloud_operational_);
 
-                        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_input(
-                                        new pcl::PointCloud<pcl::PointXYZRGB>);
+//			pcl::ModelCoefficients coefficients;
+//			pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+//			if (debug_)
+//				pcl::io::savePCDFile("Aafter_beg.pcd", *cloud_);
+//			planeSegmentation(cloud_, coefficients, *inliers);
+//			planeExtraction(cloud_, inliers, *cloud_operational_);
 
-//                        pcl::copyPointCloud(*cloud_operational_,*cloud_input);
-                        pcl::copyPointCloud(*cloud_,*cloud_input);
+//                        pcl::io::savePCDFile("after_plane.pcd", *cloud_operational_);
 
-                        Eigen::Vector4f center;
-//                        pcl::compute3DCentroid(*cloud_input,center);
-                        pcl::compute3DCentroid(*cloud_,*inliers,center);
+//                        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_input(
+//                                        new pcl::PointCloud<pcl::PointXYZRGB>);
+
+////                        pcl::copyPointCloud(*cloud_operational_,*cloud_input);
+//                        pcl::copyPointCloud(*cloud_,*cloud_input);
+
+//                        Eigen::Vector4f center;
+////                        pcl::compute3DCentroid(*cloud_input,center);
+//                        pcl::compute3DCentroid(*cloud_,*inliers,center);
 
 
-                        pcl::PointXYZRGB searchPointTemp;
-                        searchPointTemp.x = center(0);
-                        searchPointTemp.y = center(1);
-                        searchPointTemp.z = center(2);
+//                        pcl::PointXYZRGB searchPointTemp;
+//                        searchPointTemp.x = center(0);
+//                        searchPointTemp.y = center(1);
+//                        searchPointTemp.z = center(2);
 
-                        pcl::KdTreeFLANN<pcl::PointXYZRGB> kdtree;
+//                        pcl::KdTreeFLANN<pcl::PointXYZRGB> kdtree;
+//                        boost::shared_ptr <std::vector<int> > kd_tree_indices(new std::vector<int>);
+//                        *kd_tree_indices=inliers->indices;
+//                        kdtree.setInputCloud(cloud_input,kd_tree_indices);
 
-                        kdtree.setInputCloud(cloud_input);
+//                        std::vector<int> pointIdxRadiusSearch;
+//                        std::vector<float> pointRadiusSquaredDistance;
 
-                        std::vector<int> pointIdxRadiusSearch;
-                        std::vector<float> pointRadiusSquaredDistance;
+//                        if (kdtree.nearestKSearch(searchPointTemp, 1, pointIdxRadiusSearch,
+//                                        pointRadiusSquaredDistance) > 0)
+//                        {
+//                            pointIdxRadiusSearch[0];
+//                        }
 
-                        if (kdtree.nearestKSearch(searchPointTemp, 1, pointIdxRadiusSearch,
-                                        pointRadiusSquaredDistance) > 0)
-                        {
-                            pointIdxRadiusSearch[0];
-                        }
+//                        cloud_->points[ /*inliers->indices[*/ pointIdxRadiusSearch[0] /*]*/ ].f=1;
+//                        pcl::io::savePCDFile("cloud_with_f.pcd", *cloud_);
 
-                        cloud_->points[ inliers->indices[ pointIdxRadiusSearch[0] ] ].f=1;
-
-                        magic_index_=inliers->indices[ pointIdxRadiusSearch[0] ];
+//                        magic_index_=/*inliers->indices[*/ pointIdxRadiusSearch[0] /*]*/;
 
 
 		} else
@@ -92,8 +98,8 @@ public:
 
 		if (debug_)
 			pcl::io::savePCDFile("Aafter_plane.pcd", *cloud_operational_);
-		cloud_normals_.reset(new pcl::PointCloud<pcl::Normal>);
-		normalsEstimation(cloud_operational_, cloud_normals_);
+//		cloud_normals_.reset(new pcl::PointCloud<pcl::Normal>);
+//		normalsEstimation(cloud_operational_, cloud_normals_);
 
 		if (debug_)
 			pcl::io::savePCDFile("Aafter_normals.pcd", *cloud_operational_);

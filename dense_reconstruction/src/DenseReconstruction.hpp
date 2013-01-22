@@ -44,7 +44,7 @@ template<typename PointType> void DenseReconstruction<PointType>::planeExtractio
 	pcl::copyPointCloud(cloud_output_temp, cloud_output);
 
 	//part for extracting the features. PointTypa is gotta be of type pcl::PointCloud<pcl::PointXYZLRegionF>
-	for (int i = 0; i < cloud_input->points.size(); i++) {
+        for (uint i = 0; i < cloud_input->points.size(); i++) {
 		if (cloud_input->points[i].f != 0) {
 
 			pcl::PointXYZI searchPointTemp;
@@ -119,7 +119,7 @@ template<typename PointType> void DenseReconstruction<PointType>::activeSegmenta
 	boundaryEstimation(cloud_input.makeShared(), normals, boundary);
 
         //BIG HACK :)
-        fp_index=magic_index_;
+//        fp_index=magic_index_;
 
 	std::cerr << "Index of seed point is: " << fp_index << std::endl;
 	std::cerr << "Curvature of seed point: "
@@ -132,7 +132,7 @@ template<typename PointType> void DenseReconstruction<PointType>::activeSegmenta
 			new pcl::search::KdTree<pcl::PointXYZRGBA>());
 	tree->setInputCloud(cloud_in.makeShared());
 
-	if (fp_index > cloud_in.points.size() || fp_index < 0) {
+        if (fp_index > static_cast<int>(cloud_in.points.size()) || fp_index < 0) {
 		PCL_ERROR(
 				"[pcl::activeSegmentation] Fixation point given is invalid\n");
 		return;

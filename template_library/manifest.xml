@@ -1,0 +1,26 @@
+<package>
+  <description brief="template_library">
+
+     template_library
+
+  </description>
+  <author>Karol Hausman</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/template_library</url>
+
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="cv_bridge"/>
+  <depend package="pcl"/>
+  <depend package="dense_reconstruction"/>
+
+<export>
+  <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib"  />
+</export>
+</package>
+
+
+
+

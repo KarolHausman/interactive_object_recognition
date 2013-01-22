@@ -19,6 +19,7 @@
   <depend package="dense_reconstruction"/>
   <depend package="message_filters"/>
   <depend package="dynamic_reconfigure"/>
+  <depend package="template_library"/>
 
 
 </package>
