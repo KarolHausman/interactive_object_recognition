@@ -68,7 +68,7 @@ void TemplateLibrary::saveTemplates()
     {
         Template temp=templates_[i];
         //save to the directory
-        cv::imshow("no plane image",temp.image_);
+        cv::imshow("no plane image",temp.no_plane_image_);
         cv::waitKey();
 
     }
