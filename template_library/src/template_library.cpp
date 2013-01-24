@@ -7,6 +7,7 @@
  *      Author: Karol Hausman
  */
 
+#include <pcl/filters/filter.h>
 
 TemplateLibrary::TemplateLibrary():
     nh_ ("~/template_library"),
@@ -28,10 +29,10 @@ void TemplateLibrary::loadClouds()
     for(uint i=0;i<filenames_.size();i++)
     {
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_input(
-                        new pcl::PointCloud<pcl::PointXYZRGB>);
+                    new pcl::PointCloud<pcl::PointXYZRGB>);
 
         pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_for_dense(
-                        new pcl::PointCloud<pcl::PointXYZLRegionF>);
+                    new pcl::PointCloud<pcl::PointXYZLRegionF>);
 
         pcl::io::loadPCDFile(filenames_[i], *cloud_input);
 
@@ -46,10 +47,10 @@ void TemplateLibrary::generateTemplateData()
 {
     loadClouds();
 
-    for(uint i=0;i<clouds_dense_.size();i++)
+    for(uint i=0;i<clouds_input_.size();i++)
     {
         pcl::PointIndices template_inliers;
-        generateTemplateDataEuclidean(clouds_dense_[i],template_inliers);
+        generateTemplateDataEuclidean(clouds_input_[i],template_inliers);
         cv::Mat image=restoreCVMatNoPlaneFromPointCloud(clouds_input_[i],template_inliers);
         cv::imshow("no plane image",image);
         cv::waitKey();
@@ -62,25 +63,42 @@ cv::Mat TemplateLibrary::restoreCVMatNoPlaneFromPointCloud (pcl::PointCloud<pcl:
 {
     cv::Mat restored_image = cv::Mat (cloud_in_ptr->height, cloud_in_ptr->width, CV_8UC3);
 
+
     for (uint i = 0; i < inliers.indices.size(); i++)
     {
+        //        int rows=static_cast<int>(inliers.indices[i]/cloud_in_ptr->width);
+        //        int cols=static_cast<int>(inliers.indices[i]%cloud_in_ptr->width);
         cloud_in_ptr->points[inliers.indices[i]].b = 0;
         cloud_in_ptr->points[inliers.indices[i]].g = 0;
         cloud_in_ptr->points[inliers.indices[i]].r = 0;
+
     }
+
+    int border_no_nan_width=180;
+    int border_no_nan_height=180;
 
     for (uint rows = 0; rows < cloud_in_ptr->height; rows++)
     {
         for (uint cols = 0; cols < cloud_in_ptr->width; ++cols)
-        {
-
+        {                
+            if((std::isnan(cloud_in_ptr->at(cols, rows).x))
+                    && ((static_cast<int>(cols)<border_no_nan_width)||(static_cast<int>(cols)>cloud_in_ptr->width-border_no_nan_width)
+                        || (static_cast<int>(rows)<border_no_nan_height)||(static_cast<int>(rows)>cloud_in_ptr->height-border_no_nan_height)) )
             {
-                restored_image.at<cv::Vec3b> (rows, cols)[0] = cloud_in_ptr->at (cols, rows).b;
-                restored_image.at<cv::Vec3b> (rows, cols)[1] = cloud_in_ptr->at (cols, rows).g;
-                restored_image.at<cv::Vec3b> (rows, cols)[2] = cloud_in_ptr->at (cols, rows).r;
+                cloud_in_ptr->at (cols, rows).b = 0;
+                cloud_in_ptr->at (cols, rows).g = 0;
+                cloud_in_ptr->at (cols, rows).r = 0;
             }
+
+
+
+            restored_image.at<cv::Vec3b> (rows, cols)[0] =cloud_in_ptr->at (cols, rows).b;
+            restored_image.at<cv::Vec3b> (rows, cols)[1] =cloud_in_ptr->at (cols, rows).g;
+            restored_image.at<cv::Vec3b> (rows, cols)[2] =cloud_in_ptr->at (cols, rows).r;
+
         }
     }
+
     return restored_image;
 }
 
@@ -90,64 +108,99 @@ void TemplateLibrary::generatePlaneOutliers(const pcl::PointIndices& inliers,con
     std::sort(indices.begin(),indices.end());
     for(uint i=0; i<cloud_size;i++)
     {
-        if (static_cast<int>(i)!=indices[i])
+
+        if(std::find(indices.begin(), indices.end(), i) != indices.end()) {
+            /* indices contains i */
+        } else {
+            /* indices does not contain i */
             outliers.indices.push_back(i);
+
+        }
+
     }
 
 }
 
-void TemplateLibrary::generateTemplateDataEuclidean(pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr &cloud_input, pcl::PointIndices &template_inliers)
+
+void TemplateLibrary::planeSegmentation(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud, pcl::ModelCoefficients &coefficients,
+                                        pcl::PointIndices &inliers) {
+
+
+
+    pcl::SACSegmentation<pcl::PointXYZRGB> seg;
+    seg.setOptimizeCoefficients(true);
+    seg.setModelType(pcl::SACMODEL_PLANE);
+    seg.setMethodType(pcl::SAC_RANSAC);
+    seg.setDistanceThreshold(0.02);
+    seg.setInputCloud(cloud);
+    seg.segment(inliers, coefficients);
+}
+
+
+void TemplateLibrary::generateTemplateDataEuclidean(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_input, pcl::PointIndices &template_inliers)
 {
+    pcl::ModelCoefficients coefficients;
+    pcl::PointIndices::Ptr plane_inliers(new pcl::PointIndices);
+    pcl::PointIndices::Ptr plane_outliers(new pcl::PointIndices);
 
-        dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(cloud_input));
+    boost::shared_ptr<std::vector<int> > indices(new std::vector<int>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_temp(new pcl::PointCloud<pcl::PointXYZRGB>);
+    //        pcl::removeNaNFromPointCloud(*cloud_input,*cloud_temp,*indices);
 
-        pcl::ModelCoefficients coefficients;
-        pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-        pcl::PointIndices::Ptr outliers(new pcl::PointIndices);
+    planeSegmentation(cloud_input,coefficients,*plane_inliers);
+    generatePlaneOutliers(*plane_inliers,cloud_input->size(),*plane_outliers);
 
-        pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_extracted(
-                        new pcl::PointCloud<pcl::PointXYZLRegionF>);
+    std::vector<pcl::PointIndices> cluster_indices;
+    pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kd_tree(
+                new pcl::search::KdTree<pcl::PointXYZRGB>);
 
-        dense_reconstructor_->planeSegmentation(cloud_input,coefficients,*inliers);
-        dense_reconstructor_->planeExtraction(cloud_input,inliers,*cloud_extracted);
+    ec.setClusterTolerance(0.02);
 
-        generatePlaneOutliers(*inliers,cloud_input->size(),*outliers);
+    ec.setMinClusterSize(100);
+    ec.setSearchMethod(kd_tree);
+    ec.setInputCloud(cloud_input);
+    pcl::PointIndices::Ptr outliers2(new pcl::PointIndices);
 
-        std::vector<pcl::PointIndices> cluster_indices;
-        pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec;
-        pcl::search::KdTree<pcl::PointXYZRGB>::Ptr kd_tree(
-                    new pcl::search::KdTree<pcl::PointXYZRGB>);
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr euclidian_cloud(
-                    new pcl::PointCloud<pcl::PointXYZRGB>);
+    //        for (uint z=0;z<inliers->indices.size();z++)
+    //            if((inliers->indices[z]<=euclidian_cloud->points.size())&&(inliers->indices[z]>=0))
+    //                outliers2->indices.push_back(inliers->indices[z]);
 
-        pcl::copyPointCloud(*cloud_input,*euclidian_cloud);
-        ec.setClusterTolerance(0.02);
+    //        sort( outliers2->indices.begin(), outliers2->indices.end() );
+    //        outliers2->indices.erase( unique( outliers2->indices.begin(), outliers2->indices.end() ), outliers2->indices.end() );
+    //            if((inliers->indices[z]>=euclidian_cloud->points.size())||(inliers->indices[z]<0))
+    //                ROS_INFO("HERE I AM");
 
-        ec.setMinClusterSize(1000);
+    //        for (uint j=0;j<(euclidian_cloud->points.size());j++)
+    //            outliers2->indices.push_back(j);
+    ec.setIndices(plane_inliers);
+    //        ec.extract(cluster_indices);
 
-        ec.setSearchMethod(kd_tree);
-        ec.setInputCloud(euclidian_cloud);
-        ec.setIndices(outliers);
-        ec.extract(cluster_indices);
+    pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr temp_cloud(
+                new pcl::PointCloud<pcl::PointXYZLRegionF>);
+    ROS_INFO_STREAM("size od the clusters: "<<cluster_indices.size());
 
-        pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr temp_cloud(
-                    new pcl::PointCloud<pcl::PointXYZLRegionF>);
-        ROS_INFO_STREAM("size od the clusters: "<<cluster_indices.size());
+    if(cluster_indices.size()>0)
+    {
+        //            pcl::copyPointCloud(*euclidian_cloud,*temp_cloud);
+        //            for (uint i=0;i<cluster_indices[0].indices.size()/*outliers->indices.size()*/;i++)
+        //            {
+        //                temp_cloud->points[/*outliers->indices[i]*/cluster_indices[0].indices[i]].f=2;
+        //            }
 
-        if(cluster_indices.size()>0)
-        {
-            pcl::copyPointCloud(*euclidian_cloud,*temp_cloud);
-            for (uint i=0;i<cluster_indices[0].indices.size();i++)
-            {
-                temp_cloud->points[cluster_indices[0].indices[i]].f=2;
-            }
+        pcl::copyPointCloud(*cloud_input,*plane_outliers,*temp_cloud);
 
-            //        pcl::copyPointCloud(*euclidian_cloud,cluster_indices[0],*temp_cloud);
-
-        }
-        pcl::io::savePCDFile("cloud_temp.pcd", *temp_cloud);
-        template_inliers=cluster_indices[0];
     }
+
+    temp_cloud->width =
+            static_cast<uint32_t>(temp_cloud->points.size());
+    temp_cloud->height = 1;
+    temp_cloud->is_dense = true;
+
+    pcl::io::savePCDFile("cloud_temp.pcd", *cloud_input);
+
+    template_inliers=*plane_inliers;
+}
 
 
 int TemplateLibrary::getIndex(const pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr& cloud)
@@ -156,9 +209,9 @@ int TemplateLibrary::getIndex(const pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr&
     pcl::ModelCoefficients coefficients;
     pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
     pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_extracted(
-                    new pcl::PointCloud<pcl::PointXYZLRegionF>);
+                new pcl::PointCloud<pcl::PointXYZLRegionF>);
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_input(
-                    new pcl::PointCloud<pcl::PointXYZRGB>);
+                new pcl::PointCloud<pcl::PointXYZRGB>);
     dense_reconstructor_->planeSegmentation(cloud,coefficients,*inliers);
     dense_reconstructor_->planeExtraction(cloud,inliers,*cloud_extracted);
 
@@ -184,7 +237,7 @@ int TemplateLibrary::getIndex(const pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr&
     std::vector<float> pointRadiusSquaredDistance;
 
     if (kdtree.nearestKSearch(searchPointTemp, 1, pointIdxRadiusSearch,
-                    pointRadiusSquaredDistance) > 0)
+                              pointRadiusSquaredDistance) > 0)
     {
         pointIdxRadiusSearch[0];
     }
@@ -201,30 +254,30 @@ int TemplateLibrary::getIndex(const pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr&
 void TemplateLibrary::generateTemplateDataActive(pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr &cloud_input,pcl::PointIndices &template_inliers)
 {
 
-        dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(cloud_input));
+    dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(cloud_input));
 
-        pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_segment(new pcl::PointCloud<pcl::PointXYZLRegionF>);
-        pcl::PointIndices indices_reconstruct;
-        int index=getIndex(cloud_input);
-        dense_reconstructor_->activeSegmentation(*cloud_input,0.01f,89,index,indices_reconstruct);
+    pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_segment(new pcl::PointCloud<pcl::PointXYZLRegionF>);
+    pcl::PointIndices indices_reconstruct;
+    int index=getIndex(cloud_input);
+    dense_reconstructor_->activeSegmentation(*cloud_input,0.01f,89,index,indices_reconstruct);
 
-        for (std::vector<int>::const_iterator pit = indices_reconstruct.indices.begin();
-                        pit != indices_reconstruct.indices.end(); pit++)
-        {
-                cloud_segment->points.push_back(cloud_input->points[*pit]);
-                cloud_input->points[*pit].reg = 1 + 1;
-        }
+    for (std::vector<int>::const_iterator pit = indices_reconstruct.indices.begin();
+         pit != indices_reconstruct.indices.end(); pit++)
+    {
+        cloud_segment->points.push_back(cloud_input->points[*pit]);
+        cloud_input->points[*pit].reg = 1 + 1;
+    }
 
-        cloud_segment->width =
-                        static_cast<uint32_t>(cloud_segment->points.size());
-        cloud_segment->height = 1;
-        cloud_segment->is_dense = true;
+    cloud_segment->width =
+            static_cast<uint32_t>(cloud_segment->points.size());
+    cloud_segment->height = 1;
+    cloud_segment->is_dense = true;
 
 
-        pcl::io::savePCDFile("cloud_for_dense.pcd", *cloud_input);
-        template_inliers=indices_reconstruct;
+    pcl::io::savePCDFile("cloud_for_dense.pcd", *cloud_input);
+    template_inliers=indices_reconstruct;
 
- }
+}
 
 
 

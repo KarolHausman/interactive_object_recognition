@@ -3,11 +3,6 @@
 #include "ros/ros.h"
 
 #include <opencv2/highgui/highgui.hpp>
-#include <cv_bridge/cv_bridge.h>
-
-#include <pcl/ros/conversions.h>
-#include <pcl/io/pcd_io.h>
-#include <string>
 
 /*
  * template_library.h
@@ -28,8 +23,10 @@ public:
 private:
     void loadClouds();
     int getIndex(const  pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr& cloud);
+    void planeSegmentation(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud, pcl::ModelCoefficients &coefficients,
+                    pcl::PointIndices &inliers);
     void generateTemplateDataActive(pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr &cloud_input , pcl::PointIndices &template_inliers);
-    void generateTemplateDataEuclidean(pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr &cloud_input , pcl::PointIndices &template_inliers);
+    void generateTemplateDataEuclidean(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_input , pcl::PointIndices &template_inliers);
     void generatePlaneOutliers(const pcl::PointIndices& inliers,const uint &cloud_size, pcl::PointIndices &outliers);
     cv::Mat restoreCVMatNoPlaneFromPointCloud (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_in_ptr,pcl::PointIndices &inliers);
 

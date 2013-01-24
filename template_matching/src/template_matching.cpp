@@ -39,8 +39,8 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
 //    dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(dense_cloud_ptr_));
 //    dense_reconstructor_->reconstructDenseModel(1);
 
-    template_image_ = restoreCVMatNoPlaneFromPointCloud(template_cloud_ptr_);
-//    template_image_ = restoreCVMatFromPointCloud(template_cloud_ptr_);
+//    template_image_ = restoreCVMatNoPlaneFromPointCloud(template_cloud_ptr_);
+    template_image_ = restoreCVMatFromPointCloud(template_cloud_ptr_);
 
     //    subscriber_ = image_transport_.subscribe(subscribe_topic, 1, &TemplateMatcher::imageCallback, this);
     cloud_subscriber_ = nh.subscribe("/camera/depth_registered/points", 1, &TemplateMatcher::cloudCallback, this);

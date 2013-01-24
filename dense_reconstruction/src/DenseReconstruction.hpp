@@ -18,10 +18,10 @@ template<typename PointType> void DenseReconstruction<PointType>::planeSegmentat
 			new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::copyPointCloud(*cloud, *cloud_temp);
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
-	seg.setOptimizeCoefficients(true);
+        seg.setOptimizeCoefficients(false);
 	seg.setModelType(pcl::SACMODEL_PLANE);
 	seg.setMethodType(pcl::SAC_RANSAC);
-	seg.setMaxIterations(plane_segmentation_max_iter_);
+//	seg.setMaxIterations(plane_segmentation_max_iter_);
 	seg.setDistanceThreshold(plane_segmentation_dist_thresh_);
 	seg.setInputCloud(cloud_temp);
 	seg.segment(inliers, coefficients);
@@ -44,32 +44,32 @@ template<typename PointType> void DenseReconstruction<PointType>::planeExtractio
 	pcl::copyPointCloud(cloud_output_temp, cloud_output);
 
 	//part for extracting the features. PointTypa is gotta be of type pcl::PointCloud<pcl::PointXYZLRegionF>
-        for (uint i = 0; i < cloud_input->points.size(); i++) {
-		if (cloud_input->points[i].f != 0) {
+//        for (uint i = 0; i < cloud_input->points.size(); i++) {
+//		if (cloud_input->points[i].f != 0) {
 
-			pcl::PointXYZI searchPointTemp;
-			searchPointTemp.x = cloud_input->points[i].x;
-			searchPointTemp.y = cloud_input->points[i].y;
-			searchPointTemp.z = cloud_input->points[i].z;
-			searchPointTemp.intensity = cloud_input->points[i].f;
+//			pcl::PointXYZI searchPointTemp;
+//			searchPointTemp.x = cloud_input->points[i].x;
+//			searchPointTemp.y = cloud_input->points[i].y;
+//			searchPointTemp.z = cloud_input->points[i].z;
+//			searchPointTemp.intensity = cloud_input->points[i].f;
 
-			pcl::KdTreeFLANN<pcl::PointXYZI> kdtree;
+//			pcl::KdTreeFLANN<pcl::PointXYZI> kdtree;
 
-			kdtree.setInputCloud(cloud_output_temp.makeShared());
+//			kdtree.setInputCloud(cloud_output_temp.makeShared());
 
-			std::vector<int> pointIdxRadiusSearch;
-			std::vector<float> pointRadiusSquaredDistance;
+//			std::vector<int> pointIdxRadiusSearch;
+//			std::vector<float> pointRadiusSquaredDistance;
 
-			if (kdtree.nearestKSearch(searchPointTemp, 1, pointIdxRadiusSearch,
-					pointRadiusSquaredDistance) > 0) {
+//			if (kdtree.nearestKSearch(searchPointTemp, 1, pointIdxRadiusSearch,
+//					pointRadiusSquaredDistance) > 0) {
 
-				cloud_output.points[pointIdxRadiusSearch[0]].f =
-						cloud_input->points[i].f;
+//				cloud_output.points[pointIdxRadiusSearch[0]].f =
+//						cloud_input->points[i].f;
 
-			}
+//			}
 
-		}
-	}
+//		}
+//	}
 
 }
 template<typename PointType> void DenseReconstruction<PointType>::normalsEstimation(
