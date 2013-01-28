@@ -64,6 +64,12 @@ private:
     pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud_ptr_;
     pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr dense_cloud_ptr_;
     TemplateLibrary template_library_;
+
+    cv::Point upper_left_;
+    cv::Point bottom_right_;
+    cv::Point search_upper_left_;
+    cv::Point search_bottom_right_;
+    bool first_one_;
 //    boost::shared_ptr<DenseReconstruction<pcl::PointXYZLRegionF> > dense_reconstructor_;
 
 };

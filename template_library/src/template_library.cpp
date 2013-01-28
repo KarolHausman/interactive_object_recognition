@@ -55,8 +55,6 @@ void TemplateLibrary::generateTemplateData()
         cv::Mat image=restoreCVMatFromPointCloud(clouds_input_[i]);
         Template temp(image,image_no_plane,clouds_input_[i],clouds_dense_[i]);
         templates_.push_back(temp);
-//        cv::imshow("no plane image",temp.image_);
-//        cv::waitKey();
     }
     saveTemplates();
 
@@ -67,13 +65,69 @@ void TemplateLibrary::saveTemplates()
     for(uint i=0;i<templates_.size();i++)
     {
         Template temp=templates_[i];
-        //save to the directory
-        cv::imshow("no plane image",temp.no_plane_image_);
-        cv::waitKey();
+
+        std::stringstream ss_cloud_rgb;
+        std::stringstream ss_cloud_inliers;
+        std::stringstream ss_image;
+        std::stringstream ss_no_plane_image;
+
+        generateNames(i,ss_image,ss_no_plane_image,ss_cloud_rgb,ss_cloud_inliers);
+
+        ROS_INFO_STREAM(ss_cloud_rgb.str());
+        pcl::io::savePCDFile(ss_cloud_inliers.str(),*temp.cloud_with_inliers_ptr_);
+        pcl::io::savePCDFile(ss_cloud_rgb.str(),*temp.cloud_ptr_);
+        cv::imwrite( ss_image.str(), temp.image_);
+        cv::imwrite( ss_no_plane_image.str(), temp.no_plane_image_);
 
     }
 
 }
+
+std::vector<Template> TemplateLibrary::loadTemplates()
+{
+    for(uint i=0;i<filenames_.size();i++)
+    {
+        std::stringstream ss_cloud_rgb;
+        std::stringstream ss_cloud_inliers;
+        std::stringstream ss_image;
+        std::stringstream ss_no_plane_image;
+
+        generateNames(i,ss_image,ss_no_plane_image,ss_cloud_rgb,ss_cloud_inliers);
+
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rgb(
+                    new pcl::PointCloud<pcl::PointXYZRGB>);
+
+        pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_inliers(
+                    new pcl::PointCloud<pcl::PointXYZLRegionF>);
+
+        pcl::io::loadPCDFile(ss_cloud_rgb.str(), *cloud_rgb);
+        pcl::io::loadPCDFile(ss_cloud_inliers.str(), *cloud_inliers);
+        cv::Mat image=cv::imread( ss_image.str(), 1 );
+        cv::Mat image_no_plane=cv::imread(ss_no_plane_image.str(),1);
+
+        Template temp(image, image_no_plane, cloud_rgb, cloud_inliers);
+        templates_.push_back(temp);
+    }
+    return getTemplates();
+}
+
+std::vector<Template> TemplateLibrary::getTemplates()
+{
+       return templates_;
+}
+
+
+
+void TemplateLibrary::generateNames(const int &i,std::stringstream &ss_image,std::stringstream &ss_no_plane_image,std::stringstream &ss_cloud_rgb,std::stringstream &ss_cloud_inliers)
+{
+
+    ss_cloud_rgb<<"/home/karol/ros_workspace/interactive_object_recognition/template_library/data/template" <<i<<"cloud_rgb.pcd";
+    ss_cloud_inliers<<"/home/karol/ros_workspace/interactive_object_recognition/template_library/data/template" <<i<<"cloud_inliers.pcd";
+    ss_image<<"/home/karol/ros_workspace/interactive_object_recognition/template_library/data/template" <<i<<"image.jpg";
+    ss_no_plane_image<<"/home/karol/ros_workspace/interactive_object_recognition/template_library/data/template" <<i<<"image_no_plane.jpg";
+
+}
+
 
 
 
@@ -225,7 +279,7 @@ void TemplateLibrary::generateTemplateDataEuclidean(pcl::PointCloud<pcl::PointXY
     temp_cloud->height = 1;
     temp_cloud->is_dense = true;
 
-    pcl::io::savePCDFile("cloud_temp.pcd", *temp_cloud);
+//    pcl::io::savePCDFile("/home/karol/ros_workspace/interactive_object_recognition/template_library/data/cloud_temp.pcd", *temp_cloud);
     pcl::copyPointCloud(*temp_cloud,*cloud_input_with_inliers);
 
     template_inliers=*plane_inliers;
