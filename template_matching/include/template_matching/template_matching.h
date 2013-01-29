@@ -35,9 +35,6 @@ public:
     TemplateMatcher(ros::NodeHandle nh);
 
 private:
-    cv::Mat restoreCVMatFromPointCloud (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_in_ptr);
-
-    cv::Mat restoreCVMatNoPlaneFromPointCloud (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_in_ptr);
 
     void cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg);
 
@@ -60,7 +57,6 @@ private:
 
     ros::Time publish_time_;
     cv::Mat template_image_;
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr template_cloud_ptr_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud_ptr_;
     pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr dense_cloud_ptr_;
     TemplateLibrary template_library_;
@@ -70,7 +66,7 @@ private:
     cv::Point search_upper_left_;
     cv::Point search_bottom_right_;
     bool first_one_;
-//    boost::shared_ptr<DenseReconstruction<pcl::PointXYZLRegionF> > dense_reconstructor_;
+    cv::Mat image_four_;
 
 };
 

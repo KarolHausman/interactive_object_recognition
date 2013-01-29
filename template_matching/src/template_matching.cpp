@@ -22,31 +22,19 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
     matcher_(),
     ransac_transformer_(),
     image_transport_(nh),
-    template_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>),
     current_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZ>),
     dense_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
-//    dense_reconstructor_(),
     template_library_()
 {
     first_one_=true;
     publish_time_=ros::Time::now();
 //    template_image_ = cv::Mat (cvLoadImage (template_filename.c_str (), CV_LOAD_IMAGE_COLOR));
-    pcl::io::loadPCDFile(cloud_name,*template_cloud_ptr_);
 //    template_library_.generateTemplateData();
 //    template_library_.loadTemplates();
 //    template_image_ =template_library_.loadTemplates()[0].no_plane_image_;
     template_image_ =template_library_.loadTemplates()[0].image_;
 
-//    pcl::copyPointCloud(*template_cloud_ptr_,*dense_cloud_ptr_);
-//    dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(dense_cloud_ptr_));
-//    pcl::PointIndices indices_reconstruct;
-//    dense_reconstructor_->activeSegmentation(*dense_cloud_ptr_,0.01f,89,100,indices_reconstruct);
-//    dense_reconstructor_.reset(new DenseReconstruction<pcl::PointXYZLRegionF>(dense_cloud_ptr_));
-//    dense_reconstructor_->reconstructDenseModel(1);
 
-//    template_image_ = restoreCVMatNoPlaneFromPointCloud(template_cloud_ptr_);
-
-//    template_image_ = restoreCVMatFromPointCloud(template_cloud_ptr_);
 
     //    subscriber_ = image_transport_.subscribe(subscribe_topic, 1, &TemplateMatcher::imageCallback, this);
     cloud_subscriber_ = nh.subscribe("/camera/depth_registered/points", 1, &TemplateMatcher::cloudCallback, this);
@@ -69,49 +57,6 @@ void TemplateMatcher::detectPlane(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &
 
 }
 
-cv::Mat TemplateMatcher::restoreCVMatFromPointCloud (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_in_ptr)
-{
-    cv::Mat restored_image = cv::Mat (cloud_in_ptr->height, cloud_in_ptr->width, CV_8UC3);
-    for (uint rows = 0; rows < cloud_in_ptr->height; rows++)
-    {
-        for (uint cols = 0; cols < cloud_in_ptr->width; ++cols)
-        {
-            restored_image.at<cv::Vec3b> (rows, cols)[0] = cloud_in_ptr->at (cols, rows).b;
-            restored_image.at<cv::Vec3b> (rows, cols)[1] = cloud_in_ptr->at (cols, rows).g;
-            restored_image.at<cv::Vec3b> (rows, cols)[2] = cloud_in_ptr->at (cols, rows).r;
-        }
-    }
-    return restored_image;
-}
-
-cv::Mat TemplateMatcher::restoreCVMatNoPlaneFromPointCloud (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_in_ptr)
-{
-    pcl::ModelCoefficients coefficients;
-    pcl::PointIndices inliers;
-    detectPlane(cloud_in_ptr,coefficients,inliers);
-    cv::Mat restored_image = cv::Mat (cloud_in_ptr->height, cloud_in_ptr->width, CV_8UC3);
-
-    for (uint i = 0; i < inliers.indices.size(); i++)
-    {
-        cloud_in_ptr->points[inliers.indices[i]].b = 0;
-        cloud_in_ptr->points[inliers.indices[i]].g = 0;
-        cloud_in_ptr->points[inliers.indices[i]].r = 0;
-    }
-
-    for (uint rows = 0; rows < cloud_in_ptr->height; rows++)
-    {
-        for (uint cols = 0; cols < cloud_in_ptr->width; ++cols)
-        {
-
-            {
-                restored_image.at<cv::Vec3b> (rows, cols)[0] = cloud_in_ptr->at (cols, rows).b;
-                restored_image.at<cv::Vec3b> (rows, cols)[1] = cloud_in_ptr->at (cols, rows).g;
-                restored_image.at<cv::Vec3b> (rows, cols)[2] = cloud_in_ptr->at (cols, rows).r;
-            }
-        }
-    }
-    return restored_image;
-}
 
 bool cvPointEqualTo(cv::Point pointA,cv::Point pointB)
 {
@@ -123,12 +68,12 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr dense_cloud_color_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::fromROSMsg(*cloud_msg,*dense_cloud_color_ptr);
     pcl::copyPointCloud(*dense_cloud_color_ptr, *current_cloud_ptr_);
-    cv::Mat search_image = restoreCVMatFromPointCloud(dense_cloud_color_ptr);
+    cv::Mat search_image = template_library_.restoreCVMatFromPointCloud(dense_cloud_color_ptr);
+
 
     cv::Mat img_matches;
     std::vector<cv::Point2f> template_points,search_points;
 
-//    template_image_ = restoreCVMatNoPlaneFromPointCloud(template_cloud_ptr_);
     matcher_.getMatches(template_image_, search_image, img_matches, template_points, search_points);
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr template_color_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -137,7 +82,7 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
 
     for(uint i=0; i < template_points.size(); i++)
     {
-        template_color_cloud_ptr->points.push_back(template_cloud_ptr_->at(template_points[i].x, template_points[i].y));
+        template_color_cloud_ptr->points.push_back(template_library_.getTemplates()[0].cloud_ptr_->at(template_points[i].x, template_points[i].y));
         search_cloud_ptr->points.push_back(current_cloud_ptr_->at(search_points[i].x, search_points[i].y));
     }
     pcl::copyPointCloud(*template_color_cloud_ptr,*template_cloud_ptr);
@@ -161,6 +106,7 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
 */
 
     cv::Scalar color(255,0,0);
+    int square_edge=32;
     if (first_one_)
     {
         upper_left_.x=template_points[0].x-4;
@@ -174,12 +120,16 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
         search_bottom_right_.y=search_points[0].y;
 
         first_one_=false;
+        cv::Size size_four(square_edge*2,square_edge*2);
+        cv::Mat image_four_temp(size_four,CV_8UC3);
+
+        image_four_=image_four_temp;
+
     }
     cv::rectangle(img_matches,upper_left_,bottom_right_,color);
     cv::rectangle(img_matches,search_upper_left_,search_bottom_right_,color);
 
 
-    int square_edge=32;
     if(std::find_if(template_points.begin(), template_points.end(),boost::bind(&cvPointEqualTo,bottom_right_,_1)) != template_points.end())
     {
         cv::Mat image=template_image_;
@@ -191,12 +141,11 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
 
         cv::Size size(roi.cols*2,roi.cols);
         cv::Mat image_both(size,CV_8UC3);
-        cv::Mat roi_one (image_both,cv::Rect(0,0,roi.cols,roi.rows));
-        cv::Mat roi_two (image_both,cv::Rect(roi.cols,0,roi_search.cols,roi_search.rows));
-
+        cv::Mat roi_one (image_four_,cv::Rect(0,0,roi.cols,roi.rows));
+        cv::Mat roi_two (image_four_,cv::Rect(roi.cols,0,roi_search.cols,roi_search.rows));
         roi.copyTo(roi_one);
         roi_search.copyTo(roi_two);
-        cv::imwrite( "contains.jpg", image_both);
+//        cv::imwrite( "contains.jpg", image_both);
 
         ROS_DEBUG("contains");
     }
@@ -215,17 +164,18 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
 
         cv::Size size(roi.cols*2,roi.cols);
         cv::Mat image_both(size,CV_8UC3);
-        cv::Mat roi_one (image_both,cv::Rect(0,0,roi.cols,roi.rows));
-        cv::Mat roi_two (image_both,cv::Rect(roi.cols,0,roi_search.cols,roi_search.rows));
+        cv::Mat roi_one (image_four_,cv::Rect(0,roi.rows,roi.cols,roi.rows));
+        cv::Mat roi_two (image_four_,cv::Rect(roi.cols,roi.rows,roi_search.cols,roi_search.rows));
 
         roi.copyTo(roi_one);
         roi_search.copyTo(roi_two);
 
-        cv::imwrite( "doesnt_contain.jpg", image_both);
+//        cv::imwrite( "doesnt_contain.jpg", image_four_);
 
         ROS_DEBUG("doesnt contain");
 
     }
+    cv::imwrite( "image_four.jpg", image_four_);
 
     /*
         Testing for flickering matches - END
