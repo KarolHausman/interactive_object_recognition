@@ -26,8 +26,7 @@ rosbuild_find_ros_package(dynamic_reconfigure)
 include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
 gencfg()
 
-set(INTERACTIVE_PERCEPTION_LIBS visualizer) 
-
+set(VISUALIZER_LIBS visualizer) 
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
@@ -36,6 +35,7 @@ set(INTERACTIVE_PERCEPTION_LIBS visualizer)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-#rosbuild_add_library(template_library src/template_library.cpp)
-rosbuild_add_executable(template_library src/main_library.cpp src/template_library.cpp)
-target_link_libraries(template_library ${INTERACTIVE_PERCEPTION_LIBS})
+rosbuild_add_executable(cloud_saver src/main_saver.cpp src/cloud_saver.cpp)
+target_link_libraries(cloud_saver ${VISUALIZER_LIBS})
+
+

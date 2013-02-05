@@ -3,6 +3,11 @@
 #include "ros/ros.h"
 
 #include <opencv2/highgui/highgui.hpp>
+#include <visualizer/Visualizer.h>
+
+#include <dynamic_reconfigure/server.h>
+#include "../../cfg/cpp/template_library/LibraryConfig.h"
+
 
 /*
  * template_library.h
@@ -97,6 +102,7 @@ public:
 
 
 private:
+    void reconfigCallback (template_library::LibraryConfig&config, uint32_t level);
     void loadClouds();
     void saveTemplates();
     int getIndex(const  pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr& cloud);
@@ -115,6 +121,11 @@ private:
     std::vector<pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr > clouds_dense_;
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr > clouds_input_;
     std::vector<Template> templates_;
+    dynamic_reconfigure::Server<template_library::LibraryConfig> reconfig_srv_;
+    dynamic_reconfigure::Server<template_library::LibraryConfig>::CallbackType
+    reconfig_callback_;
+
+
 
 
 };

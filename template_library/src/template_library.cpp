@@ -11,9 +11,18 @@
 
 TemplateLibrary::TemplateLibrary():
     nh_ ("~/template_library"),
-    dense_reconstructor_()
+    dense_reconstructor_(),
+    reconfig_srv_(nh_)
 {
+    reconfig_callback_ = boost::bind (&TemplateLibrary::reconfigCallback, this, _1, _2);
+    reconfig_srv_.setCallback (reconfig_callback_);
     filenames_.push_back("/home/karol/Desktop/template2.pcd");
+
+}
+
+void TemplateLibrary::reconfigCallback (template_library::LibraryConfig&config, uint32_t level)
+{
+
 
 
 }
