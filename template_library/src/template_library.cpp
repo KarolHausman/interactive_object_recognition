@@ -12,11 +12,12 @@
 TemplateLibrary::TemplateLibrary():
     nh_ ("~/template_library"),
     dense_reconstructor_(),
+    pcd_io_(),
     reconfig_srv_(nh_)
 {
     reconfig_callback_ = boost::bind (&TemplateLibrary::reconfigCallback, this, _1, _2);
     reconfig_srv_.setCallback (reconfig_callback_);
-    filenames_.push_back("/home/karol/Desktop/template2.pcd");
+//    filenames_.push_back("/home/karol/Desktop/template2.pcd");
 
 }
 
@@ -34,6 +35,26 @@ void TemplateLibrary::addLocation(const std::string &location)
 
 void TemplateLibrary::loadClouds()
 {
+    std::set<std::string> file_names;
+    std::set<std::string> directory_names_full_list;
+    pcd_io_.getDirectoryListWithExtension("/home/karol/ros_workspace/interactive_object_recognition/template_library/source",file_names);
+    for (std::set<std::string>::iterator itr = file_names.begin (); itr != file_names.end (); itr++)
+      {
+          std::set<std::string> directory_names;
+          pcd_io_.getFileListWithExtension(*itr,".pcd",directory_names);
+          directory_names_full_list.insert(directory_names.begin(), directory_names.end());
+
+      }
+
+    std::copy(directory_names_full_list.begin(), directory_names_full_list.end(), std::back_inserter(filenames_));
+
+    for (std::vector<std::string>::iterator itr = filenames_.begin (); itr != filenames_.end (); itr++)
+    {
+        ROS_INFO_STREAM("directory: "<<*itr);
+    }
+
+
+
 
     for(uint i=0;i<filenames_.size();i++)
     {

@@ -17,6 +17,7 @@
   <depend package="dynamic_reconfigure"/>
   <depend package="dense_reconstruction"/>
   <depend package="visualizer"/>
+  <depend package="pcd_io"/>
 
 <export>
   <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib"  />

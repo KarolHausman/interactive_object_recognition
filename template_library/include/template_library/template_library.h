@@ -8,6 +8,7 @@
 #include <dynamic_reconfigure/server.h>
 #include "../../cfg/cpp/template_library/LibraryConfig.h"
 
+#include <pcd_io/pcd_io.h>
 
 /*
  * template_library.h
@@ -118,6 +119,7 @@ private:
     ros::NodeHandle nh_;
     std::vector<std::string> filenames_;
     boost::shared_ptr<DenseReconstruction<pcl::PointXYZLRegionF> > dense_reconstructor_;
+    PcdIO pcd_io_;
     std::vector<pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr > clouds_dense_;
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr > clouds_input_;
     std::vector<Template> templates_;

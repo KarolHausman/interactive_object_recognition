@@ -1,0 +1,23 @@
+<package>
+  <description brief="pcd_io">
+
+     pcd_io
+
+  </description>
+  <author>Karol</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/pcd_io</url>
+
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+  <depend package="roscpp"/>
+  <depend package="pcl"/>
+
+  <export>
+      <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib"/>
+  </export> 
+
+</package>
+
+
