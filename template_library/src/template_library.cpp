@@ -24,6 +24,10 @@ TemplateLibrary::TemplateLibrary():
 
 }
 
+TemplateLibrary::~TemplateLibrary ()
+{
+}
+
 void TemplateLibrary::reconfigCallback (template_library::LibraryConfig&config, uint32_t level)
 {
     data_directory_=config.data_directory;
@@ -53,8 +57,6 @@ void TemplateLibrary::loadClouds()
           {
               directory_names_pair.insert(std::pair<std::string,std::string>(path.stem().string(),*itr));
           }
-
-
 
           directory_names_full_list.insert(directory_names_pair.begin(), directory_names_pair.end());
 
@@ -132,32 +134,57 @@ void TemplateLibrary::saveTemplates()
 
 std::vector<Template> TemplateLibrary::loadTemplates()
 {
-    for(uint i=0;i<filenames_.size();i++)
-    {
-        std::stringstream ss_cloud_rgb;
-        std::stringstream ss_cloud_inliers;
-        std::stringstream ss_image;
-        std::stringstream ss_no_plane_image;
+    std::set<std::string> file_names;
+    int i=0;
+    pcd_io_.getDirectoryListWithExtension(source_directory_,file_names);
+    for (std::set<std::string>::iterator itr = file_names.begin (); itr != file_names.end (); itr++)
+      {
+          std::set<std::string> directory_names;
 
-        generateNames(i,ss_image,ss_no_plane_image,ss_cloud_rgb,ss_cloud_inliers);
+          namespace fs = boost::filesystem;
 
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rgb(
-                    new pcl::PointCloud<pcl::PointXYZRGB>);
+          fs::path path (*itr);
 
-        pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_inliers(
-                    new pcl::PointCloud<pcl::PointXYZLRegionF>);
+          ROS_DEBUG_STREAM("folder:"<<path.stem());
+          pcd_io_.getFileListWithExtension(*itr,".pcd",directory_names);
 
-        pcl::io::loadPCDFile(ss_cloud_rgb.str(), *cloud_rgb);
-        pcl::io::loadPCDFile(ss_cloud_inliers.str(), *cloud_inliers);
-        cv::Mat image=cv::imread( ss_image.str(), 1 );
-        cv::Mat image_no_plane=cv::imread(ss_no_plane_image.str(),1);
+          for (std::set<std::string>::iterator itr = directory_names.begin (); itr != directory_names.end (); itr++)
+          {
 
-        std::string name="name";
-        Template temp(image, image_no_plane, cloud_rgb, cloud_inliers,name);
-        templates_.push_back(temp);
+              std::stringstream ss_cloud_rgb_;
+              std::stringstream ss_cloud_inliers_;
+              std::stringstream ss_image_;
+              std::stringstream ss_no_plane_image_;
+
+              std::string directory=data_directory_+path.stem().string()+ "_template";
+              ss_cloud_rgb_<<directory <<i<<"cloud_rgb.pcd";
+              ss_cloud_inliers_<<directory <<i<<"cloud_inliers.pcd";
+              ss_image_<<directory <<i<<"image.jpg";
+              ss_no_plane_image_<<directory <<i<<"image_no_plane.jpg";
+              i++;
+              ROS_INFO_STREAM(ss_cloud_rgb_.str());
+              ROS_INFO_STREAM(ss_cloud_inliers_.str());
+              ROS_INFO_STREAM(ss_image_.str());
+              ROS_INFO_STREAM(ss_no_plane_image_.str());
+              pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_rgb(
+                          new pcl::PointCloud<pcl::PointXYZRGB>);
+
+              pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_inliers(
+                          new pcl::PointCloud<pcl::PointXYZLRegionF>);
+
+              pcl::io::loadPCDFile(ss_cloud_rgb_.str(), *cloud_rgb);
+              pcl::io::loadPCDFile(ss_cloud_inliers_.str(), *cloud_inliers);
+              cv::Mat image=cv::imread( ss_image_.str(), 1 );
+              cv::Mat image_no_plane=cv::imread(ss_no_plane_image_.str(),1);
+
+              Template temp(image, image_no_plane, cloud_rgb, cloud_inliers,path.stem().string());
+              templates_.push_back(temp);
+
+          }
     }
     return getTemplates();
 }
+
 
 std::vector<Template> TemplateLibrary::getTemplates()
 {

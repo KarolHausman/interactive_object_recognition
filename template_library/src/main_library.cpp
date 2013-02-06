@@ -15,7 +15,8 @@ int main(int argc, char **argv)
 
         TemplateLibrary library;
 
-        library.generateTemplateData();
+//        library.generateTemplateData();
+        library.loadTemplates();
 
 }
 
