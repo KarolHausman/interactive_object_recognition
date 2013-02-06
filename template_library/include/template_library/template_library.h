@@ -3,7 +3,6 @@
 #include "ros/ros.h"
 
 #include <opencv2/highgui/highgui.hpp>
-#include <visualizer/Visualizer.h>
 
 #include <dynamic_reconfigure/server.h>
 #include "../../cfg/cpp/template_library/LibraryConfig.h"
@@ -20,7 +19,7 @@
 struct Template
 {
     Template(cv::Mat image, cv::Mat no_plane_image, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr,
-            pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_with_inliers_ptr):
+            pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_with_inliers_ptr, std::string name):
         cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
         cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
     {
@@ -28,38 +27,49 @@ struct Template
         cloud_ptr_.reset(new pcl::PointCloud<pcl::PointXYZRGB>(*cloud_ptr));
         image_=image;
         no_plane_image_=no_plane_image;
+        name_=name;
     }
 
-    Template(cv::Mat image, cv::Mat no_plane_image, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr):
+    Template(cv::Mat image, cv::Mat no_plane_image, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr, std::string name):
         cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
         cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
     {
         cloud_ptr_.reset(new pcl::PointCloud<pcl::PointXYZRGB>(*cloud_ptr));
         image_=image;
         no_plane_image_=no_plane_image;
+        name_=name;
     }
 
-    Template(cv::Mat image, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr):
+    Template(cv::Mat image, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr, std::string name):
         cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
         cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
     {
         cloud_ptr_.reset(new pcl::PointCloud<pcl::PointXYZRGB>(*cloud_ptr));
         image_=image;
+        name_=name;
     }
 
-    Template(cv::Mat image):
+    Template(cv::Mat image, std::string name):
         cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
         cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
     {
         image_=image;
+        name_=name;
     }
 
-    Template(cv::Mat image, cv::Mat no_plane_image):
+    Template(cv::Mat image, cv::Mat no_plane_image, std::string name):
         cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
     {
         image_=image;
         no_plane_image_=no_plane_image;
+        name_=name;
     }
+
+    inline void setName(const std::string &name)
+    {
+        name_=name;
+    }
+
 
     inline void setNoPlaneImage(const cv::Mat &no_plane_image)
     {
@@ -86,6 +96,7 @@ struct Template
     cv::Mat image_;
     pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_with_inliers_ptr_;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr_;
+    std::string name_;
 
 };
 
@@ -94,7 +105,6 @@ class TemplateLibrary
 {
 public:
     TemplateLibrary();
-    void addLocation(const std::string &location);
     void generateTemplateData();
     std::vector<Template> loadTemplates();
     std::vector<Template> getTemplates();
@@ -117,7 +127,8 @@ private:
 
 
     ros::NodeHandle nh_;
-    std::vector<std::string> filenames_;
+    std::vector<std::pair<std::string,std::string> > filenames_;
+    std::vector<std::string> names_;
     boost::shared_ptr<DenseReconstruction<pcl::PointXYZLRegionF> > dense_reconstructor_;
     PcdIO pcd_io_;
     std::vector<pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr > clouds_dense_;
@@ -126,7 +137,8 @@ private:
     dynamic_reconfigure::Server<template_library::LibraryConfig> reconfig_srv_;
     dynamic_reconfigure::Server<template_library::LibraryConfig>::CallbackType
     reconfig_callback_;
-
+    std::string data_directory_;
+    std::string source_directory_;
 
 
 

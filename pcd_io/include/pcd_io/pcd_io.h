@@ -37,6 +37,9 @@ class PcdIO
     void getDirectoryListWithExtension (const std::string& input_dir,
        std::set<std::string>& file_list);
 
+    void getDirectoryListWithExtension (const std::string& input_dir,
+       std::set<std::string>& file_list,std::set<std::string>& folder_list);
+
     void getFileListWithExtension(const std::string& input_dir, const std::string& input_ext,
         std::set<std::string>& file_list);
   private:

@@ -17,6 +17,28 @@ PcdIO::~PcdIO ()
 {
 }
 
+void PcdIO::getDirectoryListWithExtension (const std::string& input_dir,
+   std::set<std::string>& file_list,std::set<std::string>& folder_list)
+{
+    std::ifstream input_stream;
+    namespace fs = boost::filesystem;
+
+    fs::path path (input_dir);
+
+    fs::directory_iterator itr (path), eod;
+
+    BOOST_FOREACH(fs::path const &file_path, std::make_pair(itr, eod))
+    {  if(is_directory(file_path))
+        {
+//            ROS_INFO_STREAM("directory:"<<file_path.c_str());
+//            ROS_INFO_STREAM("folder:"<<file_path.stem());
+
+            file_list.insert(file_path.string());
+
+        }
+    }
+
+}
 
 void PcdIO::getDirectoryListWithExtension (const std::string& input_dir,
    std::set<std::string>& file_list)
@@ -31,7 +53,9 @@ void PcdIO::getDirectoryListWithExtension (const std::string& input_dir,
     BOOST_FOREACH(fs::path const &file_path, std::make_pair(itr, eod))
     {  if(is_directory(file_path))
         {
-            ROS_DEBUG_STREAM("directory:"<<file_path.c_str());
+//            ROS_INFO_STREAM("directory:"<<file_path.c_str());
+//            ROS_INFO_STREAM("folder:"<<file_path.stem());
+
             file_list.insert(file_path.string());
 
         }

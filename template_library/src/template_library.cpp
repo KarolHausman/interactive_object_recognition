@@ -19,38 +19,52 @@ TemplateLibrary::TemplateLibrary():
     reconfig_srv_.setCallback (reconfig_callback_);
 //    filenames_.push_back("/home/karol/Desktop/template2.pcd");
 
+//    data_directory_="/home/karol/ros_workspace/interactive_object_recognition/template_library/data/";
+//    source_directory_="/home/karol/ros_workspace/interactive_object_recognition/template_library/source";
+
 }
 
 void TemplateLibrary::reconfigCallback (template_library::LibraryConfig&config, uint32_t level)
 {
-
-
+    data_directory_=config.data_directory;
+    source_directory_=config.source_directory;
 
 }
 
-void TemplateLibrary::addLocation(const std::string &location)
-{
-    filenames_.push_back(location);
-}
 
 void TemplateLibrary::loadClouds()
 {
     std::set<std::string> file_names;
-    std::set<std::string> directory_names_full_list;
-    pcd_io_.getDirectoryListWithExtension("/home/karol/ros_workspace/interactive_object_recognition/template_library/source",file_names);
+    std::set<std::pair<std::string,std::string> > directory_names_full_list;
+    pcd_io_.getDirectoryListWithExtension(source_directory_,file_names);
     for (std::set<std::string>::iterator itr = file_names.begin (); itr != file_names.end (); itr++)
       {
           std::set<std::string> directory_names;
+          std::set<std::pair<std::string,std::string> > directory_names_pair;
+
+          namespace fs = boost::filesystem;
+
+          fs::path path (*itr);
+
+          ROS_DEBUG_STREAM("folder:"<<path.stem());
           pcd_io_.getFileListWithExtension(*itr,".pcd",directory_names);
-          directory_names_full_list.insert(directory_names.begin(), directory_names.end());
+
+          for (std::set<std::string>::iterator itr = directory_names.begin (); itr != directory_names.end (); itr++)
+          {
+              directory_names_pair.insert(std::pair<std::string,std::string>(path.stem().string(),*itr));
+          }
+
+
+
+          directory_names_full_list.insert(directory_names_pair.begin(), directory_names_pair.end());
 
       }
 
     std::copy(directory_names_full_list.begin(), directory_names_full_list.end(), std::back_inserter(filenames_));
 
-    for (std::vector<std::string>::iterator itr = filenames_.begin (); itr != filenames_.end (); itr++)
+    for (std::set<std::pair<std::string,std::string> >::iterator itr = directory_names_full_list.begin (); itr != directory_names_full_list.end (); itr++)
     {
-        ROS_INFO_STREAM("directory: "<<*itr);
+        ROS_INFO_STREAM("Loading : directory: "<<itr->second<<", object name: "<<itr->first);
     }
 
 
@@ -64,12 +78,13 @@ void TemplateLibrary::loadClouds()
         pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_for_dense(
                     new pcl::PointCloud<pcl::PointXYZLRegionF>);
 
-        pcl::io::loadPCDFile(filenames_[i], *cloud_input);
+        pcl::io::loadPCDFile(filenames_[i].second, *cloud_input);
 
         pcl::copyPointCloud(*cloud_input,*cloud_for_dense);
 
         clouds_dense_.push_back(cloud_for_dense);
         clouds_input_.push_back(cloud_input);
+        names_.push_back(filenames_[i].first);
     }
 }
 
@@ -79,11 +94,13 @@ void TemplateLibrary::generateTemplateData()
 
     for(uint i=0;i<clouds_input_.size();i++)
     {
+
         pcl::PointIndices template_inliers;
         generateTemplateDataEuclidean(clouds_input_[i],clouds_dense_[i],template_inliers);
         cv::Mat image_no_plane=restoreCVMatNoPlaneFromPointCloud(*clouds_input_[i],template_inliers);
         cv::Mat image=restoreCVMatFromPointCloud(clouds_input_[i]);
-        Template temp(image,image_no_plane,clouds_input_[i],clouds_dense_[i]);
+
+        Template temp(image,image_no_plane,clouds_input_[i],clouds_dense_[i],names_[i]);
         templates_.push_back(temp);
     }
     saveTemplates();
@@ -103,7 +120,7 @@ void TemplateLibrary::saveTemplates()
 
         generateNames(i,ss_image,ss_no_plane_image,ss_cloud_rgb,ss_cloud_inliers);
 
-        ROS_INFO_STREAM(ss_cloud_rgb.str());
+        ROS_DEBUG_STREAM(ss_cloud_rgb.str());
         pcl::io::savePCDFile(ss_cloud_inliers.str(),*temp.cloud_with_inliers_ptr_);
         pcl::io::savePCDFile(ss_cloud_rgb.str(),*temp.cloud_ptr_);
         cv::imwrite( ss_image.str(), temp.image_);
@@ -135,7 +152,8 @@ std::vector<Template> TemplateLibrary::loadTemplates()
         cv::Mat image=cv::imread( ss_image.str(), 1 );
         cv::Mat image_no_plane=cv::imread(ss_no_plane_image.str(),1);
 
-        Template temp(image, image_no_plane, cloud_rgb, cloud_inliers);
+        std::string name="name";
+        Template temp(image, image_no_plane, cloud_rgb, cloud_inliers,name);
         templates_.push_back(temp);
     }
     return getTemplates();
@@ -150,11 +168,13 @@ std::vector<Template> TemplateLibrary::getTemplates()
 
 void TemplateLibrary::generateNames(const int &i,std::stringstream &ss_image,std::stringstream &ss_no_plane_image,std::stringstream &ss_cloud_rgb,std::stringstream &ss_cloud_inliers)
 {
+    std::string directory=data_directory_+templates_[i].name_+"_template";
 
-    ss_cloud_rgb<<"/home/karol/ros_workspace/interactive_object_recognition/template_library/data/template" <<i<<"cloud_rgb.pcd";
-    ss_cloud_inliers<<"/home/karol/ros_workspace/interactive_object_recognition/template_library/data/template" <<i<<"cloud_inliers.pcd";
-    ss_image<<"/home/karol/ros_workspace/interactive_object_recognition/template_library/data/template" <<i<<"image.jpg";
-    ss_no_plane_image<<"/home/karol/ros_workspace/interactive_object_recognition/template_library/data/template" <<i<<"image_no_plane.jpg";
+    ROS_DEBUG_STREAM(directory);
+    ss_cloud_rgb<<directory <<i<<"cloud_rgb.pcd";
+    ss_cloud_inliers<<directory <<i<<"cloud_inliers.pcd";
+    ss_image<<directory <<i<<"image.jpg";
+    ss_no_plane_image<<directory <<i<<"image_no_plane.jpg";
 
 }
 
