@@ -135,6 +135,9 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
         cv::Mat image=template_image_;
         cv::Mat image_search=search_image;
 
+        cv::imwrite( "template_contains.jpg", image);
+        cv::imwrite( "search_contains.jpg", image_search);
+
         // select a roi
         cv::Mat roi(image, cv::Rect(bottom_right_.x-square_edge/2,bottom_right_.y-square_edge/2,square_edge,square_edge));
         cv::Mat roi_search(image_search, cv::Rect(search_bottom_right_.x-template_image_.cols-square_edge/2,search_bottom_right_.y-square_edge/2,square_edge,square_edge));
@@ -158,6 +161,8 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
 
         cv::Mat image=template_image_;
         cv::Mat image_search=search_image;
+        cv::imwrite( "template_doesnt_contain.jpg", image);
+        cv::imwrite( "search_doesnt_contain.jpg", image_search);
 
         cv::Mat roi(image, cv::Rect(bottom_right_.x-square_edge/2,bottom_right_.y-square_edge/2,square_edge,square_edge));
         cv::Mat roi_search(image_search, cv::Rect(search_bottom_right_.x-template_image_.cols-square_edge/2,search_bottom_right_.y-square_edge/2,square_edge,square_edge));

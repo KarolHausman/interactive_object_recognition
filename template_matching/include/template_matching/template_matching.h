@@ -33,6 +33,7 @@ class TemplateMatcher
 {
 public:
     TemplateMatcher(ros::NodeHandle nh);
+    FeatureMatching matcher_;
 
 private:
 
@@ -47,7 +48,6 @@ private:
     void detectPlane(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_in_ptr, pcl::ModelCoefficients &coefficients,
                                     pcl::PointIndices &inliers);
 
-    FeatureMatching matcher_;
     RANSACTransformation ransac_transformer_;
 
     image_transport::ImageTransport image_transport_;
