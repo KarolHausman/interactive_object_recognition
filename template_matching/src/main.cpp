@@ -20,6 +20,17 @@ int main (int argc, char** argv)
 //    matcher.matcher_.detectFeatures(image_doesnt,keypoints_doesnt);
 //    ROS_INFO_STREAM("number of keypoints doesnt contain: "<<keypoints_doesnt.size());
 
+//    for (int i=0;i<keypoints_doesnt.size();i++)
+//    {
+//        ROS_INFO_STREAM("response: "<<keypoints_doesnt[i].response);
+//        ROS_INFO_STREAM("octave: "<<keypoints_doesnt[i].octave);
+//        ROS_INFO_STREAM("angle: "<<keypoints_doesnt[i].angle);
+
+//        cv::KeyPoint p;
+//        p.angle;
+
+//    }
+
     ros::Rate loop_rate (30);
     while (ros::ok())
     {
