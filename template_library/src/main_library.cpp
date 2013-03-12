@@ -15,8 +15,8 @@ int main(int argc, char **argv)
 
         TemplateLibrary library;
 
-//        library.generateTemplateData();
-        library.loadTemplates();
+        library.generateTemplateData();
+//        library.loadTemplates();
 //        pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_for_dense(
 //                    new pcl::PointCloud<pcl::PointXYZLRegionF>);
 //        pcl::io::loadPCDFile("/home/karol/Desktop/RESULT_plane.pcd", *cloud_for_dense);
