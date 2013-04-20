@@ -1,0 +1,20 @@
+<package>
+  <description brief="pcl_typedefs">
+
+     pcl_typedefs
+
+  </description>
+  <author>Karol Hausman</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/pcl_typedefs</url>
+  <depend package="roscpp"/>
+  <depend package="pcl"/>
+
+  <export>
+      <cpp cflags="-I${prefix}/include"/>
+  </export> 
+
+</package>
+
+

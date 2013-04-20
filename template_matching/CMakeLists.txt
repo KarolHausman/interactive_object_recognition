@@ -29,7 +29,7 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 rosbuild_add_executable(template_matching src/main.cpp src/template_matching.cpp)
-target_link_libraries(template_matching matching ransac_transformation template_library pcd_io)
+target_link_libraries(template_matching matching ransac_transformation template_library_lib pcd_io)
 target_link_libraries(template_matching boost_filesystem boost_system)
 rosbuild_link_boost(template_matching signals)
 
