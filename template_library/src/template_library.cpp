@@ -8,6 +8,8 @@
  */
 
 #include <pcl/filters/filter.h>
+#include <ros/package.h>
+
 
 TemplateLibrary::TemplateLibrary():
     nh_ ("~/template_library"),
@@ -21,7 +23,9 @@ TemplateLibrary::TemplateLibrary():
 
 //    data_directory_="/home/karol/ros_workspace/interactive_object_recognition/template_library/data/";
 //    source_directory_="/home/karol/ros_workspace/interactive_object_recognition/template_library/source";
-
+    std::string package_path = ros::package::getPath("template_library");
+    source_directory_ = package_path + "/source/";
+    data_directory_ = package_path + "/data/";
 }
 
 TemplateLibrary::~TemplateLibrary ()
@@ -30,8 +34,8 @@ TemplateLibrary::~TemplateLibrary ()
 
 void TemplateLibrary::reconfigCallback (template_library::LibraryConfig&config, uint32_t level)
 {
-    data_directory_=config.data_directory;
-    source_directory_=config.source_directory;
+//    data_directory_=config.data_directory;
+//    source_directory_=config.source_directory;
 
 }
 
