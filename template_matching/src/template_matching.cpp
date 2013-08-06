@@ -22,9 +22,11 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
     matcher_(),
     ransac_transformer_(),
     image_transport_(nh),
+    reconfig_srv_(nh),
     current_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZ>),
-    dense_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
+    dense_cloud_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),    
     template_library_()
+
 {
     first_one_=true;
     publish_time_=ros::Time::now();
@@ -37,6 +39,7 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
     library_templates_ = template_library_.loadTemplates();
 
     int i = 0;
+//    std::vector<std::string> names;
     for (std::vector<Template>::iterator it=library_templates_.begin(); it!=library_templates_.end(); it++)
     {
         template_images_.push_back( it->image_);
@@ -47,9 +50,22 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
 
         template_bin_.push_back(init_vector);
         template_map_.insert(std::pair<int, std::string> (i, it->name_));
+//        names.push_back(it->name_);
+
+        template_single_map_.insert(std::pair<std::string,int>(it->name_,0));
+        template_single_map_history_.insert(std::pair<std::string,int>(it->name_,0));
+
+
         i++;
 
     }
+    sum_history_=0;
+    absolute_matches_threshold_ = 30;
+    single_ratio_threshold_ = 0.85;
+    cumultative_ratio_threshold_ = 0.99;
+
+    reconfig_callback_ = boost::bind (&TemplateMatcher::reconfigCallback, this, _1, _2);
+    reconfig_srv_.setCallback (reconfig_callback_);
 
 
     //    subscriber_ = image_transport_.subscribe(subscribe_topic, 1, &TemplateMatcher::imageCallback, this);
@@ -58,6 +74,24 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
     publisher_ = image_transport_.advertise (image_matches_topic, 1);
 }
 
+
+void TemplateMatcher::reconfigCallback (template_matching::MatcherConfig&config, uint32_t level)
+{
+    absolute_matches_threshold_ = config.absolute_matches_threshold;
+    single_ratio_threshold_ = config.single_ratio_threshold;
+    cumultative_ratio_threshold_ = config.cumultative_ratio_threshold;
+
+    if (config.empty_history_buffer)
+    {
+        sum_history_ = 0;
+        for (std::map<std::string,int>::iterator it=template_single_map_history_.begin(); it!=template_single_map_history_.end(); it++)
+        {
+            it->second = 0;
+        }
+        config.empty_history_buffer = false;
+    }
+
+}
 
 void TemplateMatcher::detectPlane(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_in_ptr, pcl::ModelCoefficients &coefficients,
                                 pcl::PointIndices &inliers)
@@ -91,7 +125,7 @@ void TemplateMatcher::printBins()
         std::cout<<stream.str()<<std::endl;
 
     }
-    std::cout<<std::endl;
+//    std::cout<<std::endl;
 }
 
 
@@ -114,6 +148,126 @@ void TemplateMatcher::printAllFramesBins()
     }
 
 }
+
+
+void TemplateMatcher::checkRecognition (std::string &object_name)
+{
+
+//    std::vector<int> template_scores;
+    int sum = 0;
+    bool absolute_threshold_check = false;
+    bool single_ratio_check = false;
+    bool cumultative_ratio_check = false;
+    std::string name_absolute;
+    std::string name_single_ratio;
+    std::string name_cumultative_ratio;
+
+    //not neccessary - emptying the history
+    for (std::map<std::string,int>::iterator it=template_single_map_.begin(); it!=template_single_map_.end(); it++)
+    {
+        it->second = 0;
+    }
+
+
+
+    for (uint i=0; i < template_bin_.size() ; i++)
+    {
+        template_single_map_ [template_map_[i]] += template_bin_[i].back();
+
+        template_single_map_history_ [template_map_[i]] += template_bin_[i].back();
+
+
+
+        sum += template_bin_[i].back();
+
+        sum_history_ += template_bin_[i].back();
+
+        if(template_bin_[i].back() > absolute_matches_threshold_)
+        {
+            absolute_threshold_check = true;
+            name_absolute = template_map_[i];
+        }
+
+    }
+
+    std::cout<<"current sum = "<<sum<<std::endl;
+    std::cout<<"cumultative sum = "<<sum_history_<<std::endl;
+
+    std::cout<<std::endl;
+
+
+    std::cout<<"Single scores for objects: "<<std::endl;
+    for (std::map<std::string,int>::iterator it=template_single_map_.begin(); it!=template_single_map_.end(); it++)
+    {
+        std::cout<<it->first<<" = "<<it->second<<std::endl;
+
+    }
+    std::cout<<std::endl;
+
+
+    std::cout<<"Ratio single scores for objects: "<<std::endl;
+    for (std::map<std::string,int>::iterator it=template_single_map_.begin(); it!=template_single_map_.end(); it++)
+    {
+        std::cout<<it->first<<" = "<<(double)it->second/sum<<std::endl;
+
+        if((double)it->second/sum > single_ratio_threshold_)
+        {
+            single_ratio_check=true;
+            name_single_ratio = it->first;
+        }
+
+    }
+    std::cout<<std::endl;
+
+
+    std::cout<<"Cumultative scores for objects: "<<std::endl;
+    for (std::map<std::string,int>::iterator it=template_single_map_history_.begin(); it!=template_single_map_history_.end(); it++)
+    {
+        std::cout<<it->first<<" = "<<it->second<<std::endl;
+
+    }
+    std::cout<<std::endl;
+
+
+    std::cout<<"Ratio cumultative scores for objects: "<<std::endl;
+    for (std::map<std::string,int>::iterator it=template_single_map_history_.begin(); it!=template_single_map_history_.end(); it++)
+    {
+        std::cout<<it->first<<" = "<<(double)it->second/sum_history_<<std::endl;
+        if((double)it->second/sum_history_ > cumultative_ratio_threshold_)
+        {
+            cumultative_ratio_check=true;
+            name_cumultative_ratio = it->first;
+        }
+
+    }
+
+
+
+    std::cout<<std::endl;
+
+
+
+    //final check
+    if(absolute_threshold_check && single_ratio_check)
+    {
+        if(name_absolute == name_single_ratio)
+            object_name = name_single_ratio;
+    }
+
+    if( absolute_threshold_check && cumultative_ratio_check)
+    {
+        if(name_absolute == name_cumultative_ratio)
+            object_name = name_cumultative_ratio;
+    }
+    if(single_ratio_check && cumultative_ratio_check)
+    {
+        if(name_single_ratio == name_cumultative_ratio)
+            object_name = name_cumultative_ratio;
+    }
+
+
+}
+
 
 
 void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg)
@@ -152,6 +306,11 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
     }
 
     printBins();
+    std::string object ="NOT_RECOGNIZED";
+    checkRecognition(object);
+    std::cout<<"RECOGNIZED OBJECT ==== "<<object<<std::endl;
+    std::cout<<std::endl;
+    std::cout<<std::endl;
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr template_color_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr template_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);

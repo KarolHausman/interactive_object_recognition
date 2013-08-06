@@ -18,6 +18,10 @@
 
 #include <pcl/ros/conversions.h>
 #include <pcl/io/pcd_io.h>
+
+#include <dynamic_reconfigure/server.h>
+#include "../../cfg/cpp/template_matching/MatcherConfig.h"
+
 /*
  * template_matching.h
  *
@@ -39,6 +43,9 @@ public:
 
 
 private:
+    void reconfigCallback (template_matching::MatcherConfig &config, uint32_t level);
+
+    void checkRecognition (std::string &object_name);
 
     void cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg);
 
@@ -61,6 +68,10 @@ private:
     image_transport::Subscriber subscriber_;
     ros::Subscriber cloud_subscriber_;
 
+    dynamic_reconfigure::Server<template_matching::MatcherConfig> reconfig_srv_;
+    dynamic_reconfigure::Server<template_matching::MatcherConfig>::CallbackType
+    reconfig_callback_;
+
     ros::Time publish_time_;
     cv::Mat template_image_;
     std::vector <cv::Mat> template_images_;
@@ -78,6 +89,14 @@ private:
 
 
     std::map<int, std::string> template_map_;
+    std::map<std::string, int > template_single_map_;
+    std::map<std::string, int > template_single_map_history_;
+    int sum_history_;
+    int absolute_matches_threshold_;
+    double single_ratio_threshold_;
+    double cumultative_ratio_threshold_;
+
+
     std::vector<std::vector<int> > template_bin_;
 
 };
