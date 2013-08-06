@@ -35,6 +35,9 @@ public:
     TemplateMatcher(ros::NodeHandle nh);
     FeatureMatching matcher_;
 
+    void printAllFramesBins();
+
+
 private:
 
     void cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg);
@@ -48,6 +51,9 @@ private:
     void detectPlane(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_in_ptr, pcl::ModelCoefficients &coefficients,
                                     pcl::PointIndices &inliers);
 
+    void printBins();
+
+
     RANSACTransformation ransac_transformer_;
 
     image_transport::ImageTransport image_transport_;
@@ -57,6 +63,7 @@ private:
 
     ros::Time publish_time_;
     cv::Mat template_image_;
+    std::vector <cv::Mat> template_images_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr current_cloud_ptr_;
     pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr dense_cloud_ptr_;
     TemplateLibrary template_library_;
@@ -67,6 +74,11 @@ private:
     cv::Point search_bottom_right_;
     bool first_one_;
     cv::Mat image_four_;
+    std::vector<Template> library_templates_;
+
+
+    std::map<int, std::string> template_map_;
+    std::vector<std::vector<int> > template_bin_;
 
 };
 

@@ -32,8 +32,24 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
 //    template_library_.generateTemplateData();
 //    template_library_.loadTemplates();
 //    template_image_ =template_library_.loadTemplates()[0].no_plane_image_;
-    template_image_ =template_library_.loadTemplates()[0].image_;
 
+//    template_image_ =template_library_.loadTemplates()[0].image_;
+    library_templates_ = template_library_.loadTemplates();
+
+    int i = 0;
+    for (std::vector<Template>::iterator it=library_templates_.begin(); it!=library_templates_.end(); it++)
+    {
+        template_images_.push_back( it->image_);
+
+        std::vector<int> init_vector;
+        init_vector.push_back(0);
+
+
+        template_bin_.push_back(init_vector);
+        template_map_.insert(std::pair<int, std::string> (i, it->name_));
+        i++;
+
+    }
 
 
     //    subscriber_ = image_transport_.subscribe(subscribe_topic, 1, &TemplateMatcher::imageCallback, this);
@@ -63,6 +79,43 @@ bool cvPointEqualTo(cv::Point pointA,cv::Point pointB)
     return ((abs(pointA.x-pointB.x)<=1)&&(abs(pointA.y-pointB.y)<=1));
 }
 
+
+void TemplateMatcher::printBins()
+{
+    for (uint i=0; i < template_bin_.size() ; i++)
+    {
+        std::stringstream stream;
+
+        stream<<template_map_[i]<<" : "<<template_bin_[i].back();
+
+        std::cout<<stream.str()<<std::endl;
+
+    }
+    std::cout<<std::endl;
+}
+
+
+
+void TemplateMatcher::printAllFramesBins()
+{
+    for (uint i=0; i < template_bin_.size() ; i++)
+    {
+        std::stringstream stream;
+
+        stream<<template_map_[i]<<" : ";
+
+        for (uint j=0; j < template_bin_[i].size() ; j++)
+        {
+            stream<<", "<<template_bin_[i][j]<<", ";
+        }
+
+        std::cout<<stream.str()<<std::endl;
+
+    }
+
+}
+
+
 void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg)
 {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr dense_cloud_color_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -70,11 +123,35 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
     pcl::copyPointCloud(*dense_cloud_color_ptr, *current_cloud_ptr_);
     cv::Mat search_image = template_library_.restoreCVMatFromPointCloud(dense_cloud_color_ptr);
 
-
     cv::Mat img_matches;
     std::vector<cv::Point2f> template_points,search_points;
+    uint max_matches = 0;
 
-    matcher_.getMatches(template_image_, search_image, img_matches, template_points, search_points);
+    for (uint i=0; i<template_images_.size(); i++)
+    {
+
+        cv::Mat temp_img_matches;
+        std::vector<cv::Point2f> temp_template_points, temp_search_points;
+
+
+        matcher_.getMatches(template_images_[i], search_image, temp_img_matches, temp_template_points, temp_search_points);
+
+
+        template_bin_[i].push_back(temp_template_points.size());
+
+
+        if (temp_template_points.size() > max_matches)
+        {
+            template_image_ = template_images_[i];
+            max_matches = temp_template_points.size();
+            img_matches = temp_img_matches;
+            template_points = temp_template_points;
+            search_points = temp_search_points;
+        }
+
+    }
+
+    printBins();
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr template_color_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr template_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
@@ -105,82 +182,82 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
     Testing for flickering matches -BEGIN
 */
 
-    cv::Scalar color(255,0,0);
-    int square_edge=32;
-    if (first_one_)
-    {
-        upper_left_.x=template_points[0].x-4;
-        upper_left_.y=template_points[0].y-4;
-        bottom_right_.x=template_points[0].x;
-        bottom_right_.y=template_points[0].y;
+//    cv::Scalar color(255,0,0);
+//    int square_edge=32;
+//    if (first_one_)
+//    {
+//        upper_left_.x=template_points[0].x-4;
+//        upper_left_.y=template_points[0].y-4;
+//        bottom_right_.x=template_points[0].x;
+//        bottom_right_.y=template_points[0].y;
 
-        search_upper_left_.x=search_points[0].x-4+template_image_.cols;
-        search_upper_left_.y=search_points[0].y-4;
-        search_bottom_right_.x=search_points[0].x+template_image_.cols;
-        search_bottom_right_.y=search_points[0].y;
+//        search_upper_left_.x=search_points[0].x-4+template_image_.cols;
+//        search_upper_left_.y=search_points[0].y-4;
+//        search_bottom_right_.x=search_points[0].x+template_image_.cols;
+//        search_bottom_right_.y=search_points[0].y;
 
-        first_one_=false;
-        cv::Size size_four(square_edge*2,square_edge*2);
-        cv::Mat image_four_temp(size_four,CV_8UC3);
+//        first_one_=false;
+//        cv::Size size_four(square_edge*2,square_edge*2);
+//        cv::Mat image_four_temp(size_four,CV_8UC3);
 
-        image_four_=image_four_temp;
+//        image_four_=image_four_temp;
 
-    }
-    cv::rectangle(img_matches,upper_left_,bottom_right_,color);
-    cv::rectangle(img_matches,search_upper_left_,search_bottom_right_,color);
-
-
-    if(std::find_if(template_points.begin(), template_points.end(),boost::bind(&cvPointEqualTo,bottom_right_,_1)) != template_points.end())
-    {
-        cv::Mat image=template_image_;
-        cv::Mat image_search=search_image;
-
-        cv::imwrite( "template_contains.jpg", image);
-        cv::imwrite( "search_contains.jpg", image_search);
-
-        // select a roi
-        cv::Mat roi(image, cv::Rect(bottom_right_.x-square_edge/2,bottom_right_.y-square_edge/2,square_edge,square_edge));
-        cv::Mat roi_search(image_search, cv::Rect(search_bottom_right_.x-template_image_.cols-square_edge/2,search_bottom_right_.y-square_edge/2,square_edge,square_edge));
-
-        cv::Size size(roi.cols*2,roi.cols);
-        cv::Mat image_both(size,CV_8UC3);
-        cv::Mat roi_one (image_four_,cv::Rect(0,0,roi.cols,roi.rows));
-        cv::Mat roi_two (image_four_,cv::Rect(roi.cols,0,roi_search.cols,roi_search.rows));
-        roi.copyTo(roi_one);
-        roi_search.copyTo(roi_two);
-//        cv::imwrite( "contains.jpg", image_both);
-
-        ROS_DEBUG("contains");
-    }
-    else
-    {
-        cv::Scalar color_not_find(0,0,255);
-        cv::rectangle(img_matches,upper_left_,bottom_right_,color_not_find,-1);
-        cv::rectangle(img_matches,search_upper_left_,search_bottom_right_,color_not_find,-1);
+//    }
+//    cv::rectangle(img_matches,upper_left_,bottom_right_,color);
+//    cv::rectangle(img_matches,search_upper_left_,search_bottom_right_,color);
 
 
-        cv::Mat image=template_image_;
-        cv::Mat image_search=search_image;
-        cv::imwrite( "template_doesnt_contain.jpg", image);
-        cv::imwrite( "search_doesnt_contain.jpg", image_search);
+//    if(std::find_if(template_points.begin(), template_points.end(),boost::bind(&cvPointEqualTo,bottom_right_,_1)) != template_points.end())
+//    {
+//        cv::Mat image=template_image_;
+//        cv::Mat image_search=search_image;
 
-        cv::Mat roi(image, cv::Rect(bottom_right_.x-square_edge/2,bottom_right_.y-square_edge/2,square_edge,square_edge));
-        cv::Mat roi_search(image_search, cv::Rect(search_bottom_right_.x-template_image_.cols-square_edge/2,search_bottom_right_.y-square_edge/2,square_edge,square_edge));
+//        cv::imwrite( "template_contains.jpg", image);
+//        cv::imwrite( "search_contains.jpg", image_search);
 
-        cv::Size size(roi.cols*2,roi.cols);
-        cv::Mat image_both(size,CV_8UC3);
-        cv::Mat roi_one (image_four_,cv::Rect(0,roi.rows,roi.cols,roi.rows));
-        cv::Mat roi_two (image_four_,cv::Rect(roi.cols,roi.rows,roi_search.cols,roi_search.rows));
+//        // select a roi
+//        cv::Mat roi(image, cv::Rect(bottom_right_.x-square_edge/2,bottom_right_.y-square_edge/2,square_edge,square_edge));
+//        cv::Mat roi_search(image_search, cv::Rect(search_bottom_right_.x-template_image_.cols-square_edge/2,search_bottom_right_.y-square_edge/2,square_edge,square_edge));
 
-        roi.copyTo(roi_one);
-        roi_search.copyTo(roi_two);
+//        cv::Size size(roi.cols*2,roi.cols);
+//        cv::Mat image_both(size,CV_8UC3);
+//        cv::Mat roi_one (image_four_,cv::Rect(0,0,roi.cols,roi.rows));
+//        cv::Mat roi_two (image_four_,cv::Rect(roi.cols,0,roi_search.cols,roi_search.rows));
+//        roi.copyTo(roi_one);
+//        roi_search.copyTo(roi_two);
+////        cv::imwrite( "contains.jpg", image_both);
 
-//        cv::imwrite( "doesnt_contain.jpg", image_four_);
+//        ROS_DEBUG("contains");
+//    }
+//    else
+//    {
+//        cv::Scalar color_not_find(0,0,255);
+//        cv::rectangle(img_matches,upper_left_,bottom_right_,color_not_find,-1);
+//        cv::rectangle(img_matches,search_upper_left_,search_bottom_right_,color_not_find,-1);
 
-        ROS_DEBUG("doesnt contain");
 
-    }
-    cv::imwrite( "image_four.jpg", image_four_);
+//        cv::Mat image=template_image_;
+//        cv::Mat image_search=search_image;
+//        cv::imwrite( "template_doesnt_contain.jpg", image);
+//        cv::imwrite( "search_doesnt_contain.jpg", image_search);
+
+//        cv::Mat roi(image, cv::Rect(bottom_right_.x-square_edge/2,bottom_right_.y-square_edge/2,square_edge,square_edge));
+//        cv::Mat roi_search(image_search, cv::Rect(search_bottom_right_.x-template_image_.cols-square_edge/2,search_bottom_right_.y-square_edge/2,square_edge,square_edge));
+
+//        cv::Size size(roi.cols*2,roi.cols);
+//        cv::Mat image_both(size,CV_8UC3);
+//        cv::Mat roi_one (image_four_,cv::Rect(0,roi.rows,roi.cols,roi.rows));
+//        cv::Mat roi_two (image_four_,cv::Rect(roi.cols,roi.rows,roi_search.cols,roi_search.rows));
+
+//        roi.copyTo(roi_one);
+//        roi_search.copyTo(roi_two);
+
+////        cv::imwrite( "doesnt_contain.jpg", image_four_);
+
+//        ROS_DEBUG("doesnt contain");
+
+//    }
+//    cv::imwrite( "image_four.jpg", image_four_);
 
     /*
         Testing for flickering matches - END
