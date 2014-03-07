@@ -12,7 +12,8 @@
   <depend package="std_msgs"/>
   <depend package="rospy"/>
   <depend package="roscpp"/>
-  <depend package="pcl"/>
+  <depend package="pcl_ros"/>
+
 
   <export>
       <cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib"/>

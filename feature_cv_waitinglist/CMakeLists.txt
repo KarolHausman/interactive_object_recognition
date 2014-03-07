@@ -1,4 +1,4 @@
-set(USE_SIFT_GPU        1)
+set(USE_SIFT_GPU        0)
 set(ENV{SIFT_GPU_MODE}		2) #CUDA = 1, GLSL = 2
 set(ENV{SIFT_GPU_CUDA_PATH}	/usr/local/cuda)
 
