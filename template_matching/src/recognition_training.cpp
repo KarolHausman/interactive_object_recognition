@@ -1,4 +1,4 @@
-#include "recognition_training.h"
+#include "template_matching/recognition_training.h"
 
 RecognitionTraining::RecognitionTraining()
 {
