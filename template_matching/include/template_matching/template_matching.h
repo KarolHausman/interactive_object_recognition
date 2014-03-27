@@ -1,4 +1,8 @@
 
+#ifndef TEMPLATEMATCHING_H_
+#define TEMPLATEMATCHING_H_
+
+
 #include <ransac_waitinglist/ransac_transformation.h>
 #include <feature_cv_waitinglist/feature_matching.h>
 //#include <dense_reconstruction/DenseReconstruction.h>
@@ -46,6 +50,8 @@ private:
     void reconfigCallback (template_matching::MatcherConfig &config, uint32_t level);
 
     void checkRecognition (std::string &object_name);
+
+    void extractTemplateFeatures (const std::vector<cv::Mat>& images, std::vector<std::vector<cv::KeyPoint> >& keypoints, std::vector<cv::Mat>& descriptors);
 
     void cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg);
 
@@ -99,6 +105,12 @@ private:
 
     std::vector<std::vector<int> > template_bin_;
 
+    std::vector<std::vector<cv::KeyPoint> > template_keypoints_;
+    std::vector<cv::Mat> template_descriptors_;
+
 };
+
+#endif /* TEMPLATEMATCHING_H_ */
+
 
 

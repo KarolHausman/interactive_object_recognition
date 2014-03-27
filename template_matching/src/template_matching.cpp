@@ -67,6 +67,8 @@ TemplateMatcher::TemplateMatcher(ros::NodeHandle nh):
     reconfig_callback_ = boost::bind (&TemplateMatcher::reconfigCallback, this, _1, _2);
     reconfig_srv_.setCallback (reconfig_callback_);
 
+    extractTemplateFeatures(template_images_, template_keypoints_, template_descriptors_);
+
 
     //    subscriber_ = image_transport_.subscribe(subscribe_topic, 1, &TemplateMatcher::imageCallback, this);
     cloud_subscriber_ = nh.subscribe("/camera/depth_registered/points", 1, &TemplateMatcher::cloudCallback, this);
@@ -268,6 +270,51 @@ void TemplateMatcher::checkRecognition (std::string &object_name)
 
 }
 
+void TemplateMatcher::extractTemplateFeatures (const std::vector<cv::Mat>& images, std::vector<std::vector<cv::KeyPoint> >& keypoints, std::vector<cv::Mat>& descriptors)
+{
+//    std::vector<cv::Mat> descriptors_vector;
+//    int descriptors_width = 0;
+
+    // for all the images in the database extract all features
+    for (uint i=0; i<images.size(); i++)
+    {
+        std::vector<cv::KeyPoint> temp_keypoints;
+        cv::Mat temp_descriptors;
+        matcher_.getFeatures(images[i], temp_keypoints, temp_descriptors);
+
+        std::cerr<<"number of descriptors for "<<i<<" image: "<<temp_descriptors.rows<<std::endl;
+
+//        keypoints.insert(keypoints.end(), temp_keypoints.begin(), temp_keypoints.end());
+        keypoints.push_back(temp_keypoints);
+
+        /*if(i==1)*/ descriptors.push_back(temp_descriptors);
+
+
+//        for(int i = 0; i < temp_descriptors.rows; i++)
+//        {
+//            descriptors.push_back(temp_descriptors.row(i));
+//        }
+//        keypoints = temp_keypoints;
+//        descriptors = temp_descriptors;
+
+
+
+//        descriptors_vector.push_back(temp_descriptors);
+//        descriptors_width += temp_descriptors.rows;
+    }
+//    std::cerr<<"number of descriptors for everything: "<<descriptors.rows<<std::endl;
+
+//    for(std::vector<cv::Mat>::iterator it = descriptors_vector.begin(); it != descriptors_vector.end(); it++)
+//    {
+//        for(uint i = 0; i < it->rows; i++)
+//        {
+//            keypoints.push_back(it->row(i));
+//        }
+//    }
+
+
+
+}
 
 
 void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg)
@@ -281,14 +328,21 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
     std::vector<cv::Point2f> template_points,search_points;
     uint max_matches = 0;
 
+
+
+
+
+
     for (uint i=0; i<template_images_.size(); i++)
     {
 
         cv::Mat temp_img_matches;
         std::vector<cv::Point2f> temp_template_points, temp_search_points;
 
+        matcher_.getDescriptorMatches(template_images_[1], template_images_[1], template_keypoints_, template_descriptors_, temp_img_matches, temp_template_points, temp_search_points);
 
-        matcher_.getMatches(template_images_[i], search_image, temp_img_matches, temp_template_points, temp_search_points);
+
+//        matcher_.getMatches(template_images_[1], search_image, temp_img_matches, temp_template_points, temp_search_points);
 
 
         template_bin_[i].push_back(temp_template_points.size());
@@ -304,14 +358,15 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
         }
 
     }
+//recognition part
+//    printBins();
+//    std::string object ="NOT_RECOGNIZED";
+//    checkRecognition(object);
+//    std::cout<<"RECOGNIZED OBJECT ==== "<<object<<std::endl;
+//    std::cout<<std::endl;
+//    std::cout<<std::endl;
 
-    printBins();
-    std::string object ="NOT_RECOGNIZED";
-    checkRecognition(object);
-    std::cout<<"RECOGNIZED OBJECT ==== "<<object<<std::endl;
-    std::cout<<std::endl;
-    std::cout<<std::endl;
-
+    //ransacing part
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr template_color_cloud_ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr template_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr search_cloud_ptr(new pcl::PointCloud<pcl::PointXYZ>);
