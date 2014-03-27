@@ -181,7 +181,7 @@ std::vector<Template> TemplateLibrary::loadTemplates()
               cv::Mat image=cv::imread( ss_image_.str(), 1 );
               cv::Mat image_no_plane=cv::imread(ss_no_plane_image_.str(),1);
 
-              Template temp(image, image_no_plane, cloud_rgb, cloud_inliers,path.stem().string());
+              Template temp(image, image_no_plane, cloud_rgb, cloud_inliers,path.stem().string(),i);
               templates_.push_back(temp);
 
           }

@@ -211,6 +211,74 @@ void convertDescriptors(const std::vector<float>& float_descriptors, cv::Mat& ma
   }
 }
 
+bool FeatureMatching::getDescriptorMatches (const cv::Mat& template_image, const cv::Mat& search_image,
+                                  const std::vector<std::vector<cv::KeyPoint> >& template_keypoints,
+                                  const std::vector<cv::Mat>& template_descriptors,
+                                  cv::Mat& matches_overlay,
+                                  std::vector<cv::Point2f>& template_match_points,
+                                  std::vector<cv::Point2f>& search_match_points)
+{
+    std::vector<cv::KeyPoint> search_keypoints;
+    cv::Mat search_descriptors;
+    cv::Mat search_bw_image = convertToBlackWhite(search_image);
+
+    if(feature_detector_ == SIFTGPU_detector || feature_extractor_ == SIFTGPU_extractor)
+    {
+      SIFTGPUGetFeatures(search_bw_image, search_keypoints, search_descriptors);
+    }
+    else
+    {
+      detectFeatures (search_bw_image, search_keypoints);
+      extractFeatures (search_bw_image, search_keypoints, search_descriptors);
+    }
+    if((search_keypoints.size() == 0) || (template_keypoints.size()==0))
+    {
+      ROS_WARN_STREAM("not enough keypoints to do matching");
+      return false;
+    }
+
+    std::vector<cv::DMatch> matches;
+    std::cerr<<"number of search keypoints: "<<search_keypoints.size()<<std::endl;
+    std::cerr<<"number of search descriptors: "<<search_descriptors.rows<<std::endl;
+    std::cerr<<"number of database keypoints: "<<template_keypoints.size()<<std::endl;
+    std::cerr<<"number of database descriptors: "<<template_descriptors.size()<<std::endl;
+
+    if(distinct_matches_)
+    {
+      std::vector<std::vector<cv::DMatch> > initial_matches;
+
+      if(feature_matcher_ptrs_[descriptor_matcher_]->empty())
+      {
+          feature_matcher_ptrs_[descriptor_matcher_]->add(template_descriptors);
+      }
+
+      feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch (search_descriptors, initial_matches, (float)max_radius_search_dist_);
+
+      std::cerr<<"number of initial matches: "<<initial_matches.size()<<std::endl;
+
+//      feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch (source_descriptors, target_descriptors, initial_matches, (float)max_radius_search_dist_);
+      filterMatches (initial_matches, matches);
+    }
+
+
+//    this->findMatches (template_keypoints,template_descriptors,search_keypoints,search_descriptors,search_bw_image.rows, search_bw_image.cols, matches);
+
+    std::cerr<<"number of matches: "<<matches.size()<<std::endl;
+
+    cv::drawMatches(template_image,template_keypoints[1],search_image,search_keypoints,matches,matches_overlay,cv::Scalar(),cv::Scalar(),std::vector<char> (),cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+
+
+    //copy matches into 2 vectors
+    for(std::vector<cv::DMatch>::const_iterator itr=matches.begin(); itr != matches.end(); itr++)
+    {
+      template_match_points.push_back(template_keypoints[1][itr->queryIdx].pt);
+      search_match_points.push_back(search_keypoints[itr->trainIdx].pt);
+    }
+    return true;
+
+
+}
+
 bool FeatureMatching::getMatches (const cv::Mat& template_image, const cv::Mat& search_image,
                                   cv::Mat& matches_overlay,
                                   std::vector<cv::Point2f>& template_match_points,
@@ -357,6 +425,30 @@ bool FeatureMatching::getMatches (const cv::Mat& template_image, const cv::Mat& 
     ROS_INFO_STREAM("convert output data and copy results to class variables");
   return true;
 }
+
+bool FeatureMatching::getFeatures (const cv::Mat& image, std::vector<cv::KeyPoint>& keypoints, cv::Mat& descriptors)
+{
+    // convert image to black and white
+    cv::Mat bw_image = convertToBlackWhite(image);
+
+    //get features
+    if(feature_detector_ == SIFTGPU_detector || feature_extractor_ == SIFTGPU_extractor)
+    {
+      SIFTGPUGetFeatures(bw_image, keypoints, descriptors);
+    }
+    else
+    {
+      detectFeatures (bw_image, keypoints);
+      extractFeatures (bw_image, keypoints, descriptors);
+    }
+    if(keypoints.size() == 0)
+    {
+      ROS_WARN_STREAM("not enough keypoints to do matching");
+      return false;
+    }
+    return true;
+}
+
 
 void FeatureMatching::drawInfoOnImg(const int matches, cv::Mat& image)
 {

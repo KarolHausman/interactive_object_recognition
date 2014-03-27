@@ -1,3 +1,7 @@
+
+#ifndef TEMPLATELIBRARY_H_
+#define TEMPLATELIBRARY_H_
+
 #include <dense_reconstruction/DenseReconstruction.h>
 
 #include "ros/ros.h"
@@ -18,6 +22,19 @@
 
 struct Template
 {
+    Template(cv::Mat image, cv::Mat no_plane_image, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr,
+            pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_with_inliers_ptr, std::string name, int& pose):
+        cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
+        cloud_ptr_(new pcl::PointCloud<pcl::PointXYZRGB>)
+    {
+        cloud_with_inliers_ptr_.reset(new pcl::PointCloud<pcl::PointXYZLRegionF>(*cloud_with_inliers_ptr));
+        cloud_ptr_.reset(new pcl::PointCloud<pcl::PointXYZRGB>(*cloud_ptr));
+        image_=image;
+        no_plane_image_=no_plane_image;
+        name_=name;
+        pose_=pose;
+    }
+
     Template(cv::Mat image, cv::Mat no_plane_image, pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr,
             pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_with_inliers_ptr, std::string name):
         cloud_with_inliers_ptr_(new pcl::PointCloud<pcl::PointXYZLRegionF>),
@@ -97,6 +114,7 @@ struct Template
     pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr cloud_with_inliers_ptr_;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_ptr_;
     std::string name_;
+    uint pose_;
 
 };
 
@@ -145,3 +163,6 @@ private:
 
 
 };
+
+#endif /* TEMPLATELIBRARY_H_ */
+
