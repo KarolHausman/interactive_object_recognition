@@ -18,7 +18,6 @@ void ObjectsDatabase::createDatabase(TemplateLibrary& template_library)
         matcher_.getFeatures(it->image_, temp_keypoints, temp_descriptors);
 
 
-        //add pose somehow
         ObjectData object(it->name_, static_cast<POSE>(it->pose_), it->image_, temp_keypoints, temp_descriptors);
         objects_.push_back(object);
     }
