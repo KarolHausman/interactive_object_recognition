@@ -50,8 +50,8 @@ class FeatureMatching
                                       std::vector<cv::Point2f>& prev_search_match_points);
 
     bool getDescriptorMatches (const cv::Mat& template_image, const cv::Mat& search_image,
-                                      const std::vector<std::vector<cv::KeyPoint> >& template_keypoints,
-                                      const std::vector<cv::Mat>& template_descriptors,
+                                      const std::vector<cv::KeyPoint> & template_keypoints,
+                                      const cv::Mat& template_descriptors,
                                       cv::Mat& matches_overlay,
                                       std::vector<cv::Point2f>& template_match_points,
                                       std::vector<cv::Point2f>& search_match_points,

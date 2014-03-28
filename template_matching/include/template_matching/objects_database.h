@@ -23,6 +23,8 @@ public:
 
 
 private:
+    void fit1DGaussianToData(const std::vector<float>& v, double& m, double& stdev);
+
     std::vector<ObjectData> databaseObjects_;
     std::vector<ObjectData> trainingObjects_;
     std::vector<std::vector<ObjectData> > trainingObjectsArranged_;

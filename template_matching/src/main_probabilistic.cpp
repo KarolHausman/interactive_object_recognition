@@ -15,6 +15,7 @@ int main (int argc, char** argv)
     database.createTrainingDatabase(library);
 
 
+    database.trainDatabase();
     database.printDatabases();
     ros::Rate loop_rate (30);
     while (ros::ok())

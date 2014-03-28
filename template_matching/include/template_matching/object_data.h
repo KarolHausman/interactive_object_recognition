@@ -33,12 +33,12 @@ public:
     std::vector <cv::KeyPoint> database_feature_keypoints_;
     cv::Mat database_feature_descriptors_;
 
-    std::vector <std::vector <cv::KeyPoint> > training_feature_keypoints_;
-    std::vector <cv::Mat > training_feature_descriptors_;
 
-    //TODO: add Gaussians for matching scores
-    std::vector <std::vector <double> > trainingMatches_;
+//vector of features where each feature has a vector of distances for the training data
+    std::vector <std::vector <float> > training_matches_;
 
+//Gaussians for matching scores
+    std::vector <std::pair<double, double> > matching_gaussians_;
 
 
 
