@@ -12,8 +12,10 @@ int main (int argc, char** argv)
     ObjectsDatabase database;
     TemplateLibrary library;
     database.createDatabase(library);
+    database.createTrainingDatabase(library);
 
-    database.printDatabase();
+
+    database.printDatabases();
     ros::Rate loop_rate (30);
     while (ros::ok())
     {

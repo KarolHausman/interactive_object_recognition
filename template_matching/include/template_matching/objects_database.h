@@ -15,13 +15,18 @@ public:
     virtual ~ObjectsDatabase(){}
 
     void addObject(const ObjectData& object);
-    void createDatabase(TemplateLibrary& template_library);
-    void printDatabase();
+    void createDatabase(TemplateLibrary& templateLibrary);
+    void printDatabases();
+    void createTrainingDatabase(TemplateLibrary& templateLibrary);
+
 
 
 private:
     std::vector<ObjectData> objects_;
-    std::vector<Template> library_templates_;
+    std::vector<ObjectData> trainingObjects_;
+    std::vector<std::vector<ObjectData> > trainingObjectsArranged_;
+
+
     FeatureMatching matcher_;
 
 

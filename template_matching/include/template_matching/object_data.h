@@ -9,9 +9,8 @@
 enum POSE
 {
     Z_UP_0,
-    Z_UP_180,
-    Z_DOWN_0,
-    Z_DOWN_180
+    Z_UP_180,    
+    POSE_COUNT
 };
 
 class ObjectData
@@ -34,7 +33,6 @@ public:
     std::vector <cv::KeyPoint> database_feature_keypoints_;
     cv::Mat database_feature_descriptors_;
 
-    //maybe not needed
     std::vector <std::vector <cv::KeyPoint> > training_feature_keypoints_;
     std::vector <cv::Mat > training_feature_descriptors_;
 

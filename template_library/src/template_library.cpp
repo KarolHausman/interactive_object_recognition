@@ -11,6 +11,7 @@
 #include <ros/package.h>
 
 
+
 TemplateLibrary::TemplateLibrary():
     nh_ ("~/template_library"),
     dense_reconstructor_(),
@@ -26,6 +27,9 @@ TemplateLibrary::TemplateLibrary():
     std::string package_path = ros::package::getPath("template_library");
     source_directory_ = package_path + "/source/";
     data_directory_ = package_path + "/data/";
+    training_directory_ = package_path + "/training/";
+    training_data_directory_ = package_path + "/training_data/";
+
 }
 
 TemplateLibrary::~TemplateLibrary ()
@@ -40,11 +44,17 @@ void TemplateLibrary::reconfigCallback (template_library::LibraryConfig&config, 
 }
 
 
-void TemplateLibrary::loadClouds()
+void TemplateLibrary::loadClouds(const std::string& source_directory)
 {
+    filenames_.clear();
+    clouds_dense_.clear();
+    clouds_input_.clear();
+    names_.clear();
+
+
     std::set<std::string> file_names;
     std::set<std::pair<std::string,std::string> > directory_names_full_list;
-    pcd_io_.getDirectoryListWithExtension(source_directory_,file_names);
+    pcd_io_.getDirectoryListWithExtension(source_directory,file_names);
     for (std::set<std::string>::iterator itr = file_names.begin (); itr != file_names.end (); itr++)
       {
           std::set<std::string> directory_names;
@@ -94,9 +104,9 @@ void TemplateLibrary::loadClouds()
     }
 }
 
-void TemplateLibrary::generateTemplateData()
+void TemplateLibrary::generateTemplateData(const std::string& source_directory, const std::string& data_directory)
 {
-    loadClouds();
+    loadClouds(source_directory);
 
     for(uint i=0;i<clouds_input_.size();i++)
     {
@@ -109,12 +119,13 @@ void TemplateLibrary::generateTemplateData()
         Template temp(image,image_no_plane,clouds_input_[i],clouds_dense_[i],names_[i]);
         templates_.push_back(temp);
     }
-    saveTemplates();
+    saveTemplates(data_directory);
 
 }
 
-void TemplateLibrary::saveTemplates()
+void TemplateLibrary::saveTemplates(const std::string& data_directory)
 {
+
     for(uint i=0;i<templates_.size();i++)
     {
         Template temp=templates_[i];
@@ -124,7 +135,7 @@ void TemplateLibrary::saveTemplates()
         std::stringstream ss_image;
         std::stringstream ss_no_plane_image;
 
-        generateNames(i,ss_image,ss_no_plane_image,ss_cloud_rgb,ss_cloud_inliers);
+        generateNames(data_directory,i,ss_image,ss_no_plane_image,ss_cloud_rgb,ss_cloud_inliers);
 
         ROS_DEBUG_STREAM(ss_cloud_rgb.str());
         pcl::io::savePCDFile(ss_cloud_inliers.str(),*temp.cloud_with_inliers_ptr_);
@@ -133,17 +144,27 @@ void TemplateLibrary::saveTemplates()
         cv::imwrite( ss_no_plane_image.str(), temp.no_plane_image_);
 
     }
-
+    templates_.clear();
 }
 
-std::vector<Template> TemplateLibrary::loadTemplates()
+std::vector<Template> TemplateLibrary::loadTemplates(const std::string& type)
 {
     std::set<std::string> file_names;
     int i=0;
-    pcd_io_.getDirectoryListWithExtension(source_directory_,file_names);
+    if(type == "template")
+    {
+        pcd_io_.getDirectoryListWithExtension(source_directory_,file_names);
+    }
+    else
+    {
+        pcd_io_.getDirectoryListWithExtension(training_directory_,file_names);
+    }
+
     for (std::set<std::string>::iterator itr = file_names.begin (); itr != file_names.end (); itr++)
       {
           std::set<std::string> directory_names;
+
+          templates_.clear();
 
           namespace fs = boost::filesystem;
 
@@ -161,6 +182,10 @@ std::vector<Template> TemplateLibrary::loadTemplates()
               std::stringstream ss_no_plane_image_;
 
               std::string directory=data_directory_+path.stem().string()+ "_template";
+              if(type != "template")
+              {
+                  directory=training_data_directory_+path.stem().string()+ "_template";
+              }
               ss_cloud_rgb_<<directory <<i<<"cloud_rgb.pcd";
               ss_cloud_inliers_<<directory <<i<<"cloud_inliers.pcd";
               ss_image_<<directory <<i<<"image.jpg";
@@ -197,9 +222,9 @@ std::vector<Template> TemplateLibrary::getTemplates()
 
 
 
-void TemplateLibrary::generateNames(const int &i,std::stringstream &ss_image,std::stringstream &ss_no_plane_image,std::stringstream &ss_cloud_rgb,std::stringstream &ss_cloud_inliers)
+void TemplateLibrary::generateNames(const std::string& data_directory, const int &i,std::stringstream &ss_image,std::stringstream &ss_no_plane_image,std::stringstream &ss_cloud_rgb,std::stringstream &ss_cloud_inliers)
 {
-    std::string directory=data_directory_+templates_[i].name_+"_template";
+    std::string directory=data_directory+templates_[i].name_+"_template";
 
     ROS_DEBUG_STREAM(directory);
     ss_cloud_rgb<<directory <<i<<"cloud_rgb.pcd";

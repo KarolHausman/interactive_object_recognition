@@ -124,8 +124,8 @@ class TemplateLibrary
 public:
     TemplateLibrary();
     virtual ~TemplateLibrary();
-    void generateTemplateData();
-    std::vector<Template> loadTemplates();
+    void generateTemplateData(const std::string& source_directory, const std::string& data_directory);
+    std::vector<Template> loadTemplates(const std::string& type = "template");
     std::vector<Template> getTemplates();
     cv::Mat restoreCVMatFromPointCloud (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_in_ptr);
 
@@ -133,15 +133,15 @@ public:
 
 private:
     void reconfigCallback (template_library::LibraryConfig&config, uint32_t level);
-    void loadClouds();
-    void saveTemplates();
+    void loadClouds(const std::string& source_directory);
+    void saveTemplates(const std::string& data_directory);
     int getIndex(const  pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr& cloud);
     void planeSegmentation(const pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud, pcl::ModelCoefficients &coefficients,
                     pcl::PointIndices &inliers);
     void generateTemplateDataActive(pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr &cloud_input , pcl::PointIndices &template_inliers);
     void generateTemplateDataEuclidean(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &cloud_input ,pcl::PointCloud<pcl::PointXYZLRegionF>::Ptr &cloud_input_with_inliers, pcl::PointIndices &template_inliers);
     void generatePlaneOutliers(const pcl::PointIndices& inliers,const uint &cloud_size, pcl::PointIndices &outliers);
-    void generateNames(const int &i,std::stringstream &ss_image,std::stringstream &ss_no_plane_image,std::stringstream &ss_cloud_rgb,std::stringstream &ss_cloud_inliers);
+    void generateNames(const std::string& data_directory,const int &i,std::stringstream &ss_image,std::stringstream &ss_no_plane_image,std::stringstream &ss_cloud_rgb,std::stringstream &ss_cloud_inliers);
 
     cv::Mat restoreCVMatNoPlaneFromPointCloud (pcl::PointCloud<pcl::PointXYZRGB> cloud_in,pcl::PointIndices &inliers);
 
@@ -159,6 +159,8 @@ private:
     reconfig_callback_;
     std::string data_directory_;
     std::string source_directory_;
+    std::string training_directory_;
+    std::string training_data_directory_;
 
 
 
