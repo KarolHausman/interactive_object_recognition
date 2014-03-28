@@ -216,7 +216,8 @@ bool FeatureMatching::getDescriptorMatches (const cv::Mat& template_image, const
                                   const std::vector<cv::Mat>& template_descriptors,
                                   cv::Mat& matches_overlay,
                                   std::vector<cv::Point2f>& template_match_points,
-                                  std::vector<cv::Point2f>& search_match_points)
+                                  std::vector<cv::Point2f>& search_match_points,
+                                  std::vector<cv::DMatch>& matches)
 {
     std::vector<cv::KeyPoint> search_keypoints;
     cv::Mat search_descriptors;
@@ -237,7 +238,7 @@ bool FeatureMatching::getDescriptorMatches (const cv::Mat& template_image, const
       return false;
     }
 
-    std::vector<cv::DMatch> matches;
+//    std::vector<cv::DMatch> matches;
     std::cerr<<"number of search keypoints: "<<search_keypoints.size()<<std::endl;
     std::cerr<<"number of search descriptors: "<<search_descriptors.rows<<std::endl;
     std::cerr<<"number of database keypoints: "<<template_keypoints.size()<<std::endl;
@@ -257,7 +258,10 @@ bool FeatureMatching::getDescriptorMatches (const cv::Mat& template_image, const
       std::cerr<<"number of initial matches: "<<initial_matches.size()<<std::endl;
 
 //      feature_matcher_ptrs_[descriptor_matcher_]->radiusMatch (source_descriptors, target_descriptors, initial_matches, (float)max_radius_search_dist_);
+
+
       filterMatches (initial_matches, matches);
+
     }
 
 

@@ -54,7 +54,8 @@ class FeatureMatching
                                       const std::vector<cv::Mat>& template_descriptors,
                                       cv::Mat& matches_overlay,
                                       std::vector<cv::Point2f>& template_match_points,
-                                      std::vector<cv::Point2f>& search_match_points);
+                                      std::vector<cv::Point2f>& search_match_points,
+                                      std::vector<cv::DMatch>& matches);
 
     bool getFeatures (const cv::Mat& image, std::vector<cv::KeyPoint>& keypoints, cv::Mat& descriptors);
   private:

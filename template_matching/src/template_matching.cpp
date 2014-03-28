@@ -338,8 +338,10 @@ void TemplateMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_ms
 
         cv::Mat temp_img_matches;
         std::vector<cv::Point2f> temp_template_points, temp_search_points;
+        std::vector<cv::DMatch> temp_matches;
 
-        matcher_.getDescriptorMatches(template_images_[1], template_images_[1], template_keypoints_, template_descriptors_, temp_img_matches, temp_template_points, temp_search_points);
+
+        matcher_.getDescriptorMatches(template_images_[1], template_images_[1], template_keypoints_, template_descriptors_, temp_img_matches, temp_template_points, temp_search_points, temp_matches);
 
 
 //        matcher_.getMatches(template_images_[1], search_image, temp_img_matches, temp_template_points, temp_search_points);

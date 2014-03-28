@@ -37,6 +37,7 @@ public:
     std::vector <cv::Mat > training_feature_descriptors_;
 
     //TODO: add Gaussians for matching scores
+    std::vector <std::vector <double> > trainingMatches_;
 
 
 

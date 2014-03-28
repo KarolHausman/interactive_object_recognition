@@ -18,11 +18,12 @@ public:
     void createDatabase(TemplateLibrary& templateLibrary);
     void printDatabases();
     void createTrainingDatabase(TemplateLibrary& templateLibrary);
+    void trainDatabase();
 
 
 
 private:
-    std::vector<ObjectData> objects_;
+    std::vector<ObjectData> databaseObjects_;
     std::vector<ObjectData> trainingObjects_;
     std::vector<std::vector<ObjectData> > trainingObjectsArranged_;
 
