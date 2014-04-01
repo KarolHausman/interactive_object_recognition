@@ -30,18 +30,43 @@ void ObjectsDatabase::trainDatabase()
 
         for (std::vector<ObjectData>::iterator t_it = trainingObjectsArranged_[i].begin(); t_it != trainingObjectsArranged_[i].end(); t_it++)
         {
-            cv::Mat temp_img_matches;
-            std::vector<cv::Point2f> temp_template_points, temp_search_points;
-            std::vector<cv::DMatch> temp_matches;
 
-            //change such that it doesnt extract features
-            matcher_.getDescriptorMatches(databaseObjects_[i].image_, t_it->image_, databaseObjects_[i].database_feature_keypoints_, databaseObjects_[i].database_feature_descriptors_, temp_img_matches, temp_template_points, temp_search_points, temp_matches);
 
+            std::vector<cv::Point2f> training_image_template_points, training_image_search_points;
+            std::vector<cv::DMatch> training_image_matches;
+
+            for (uint database_i = 0; database_i < databaseObjects_.size(); database_i++)
+            {
+                cv::Mat temp_img_matches;
+                std::vector<cv::Point2f> temp_template_points, temp_search_points;
+                std::vector<cv::DMatch> temp_matches;
+
+                //change such that it doesnt extract features
+                matcher_.getDescriptorMatches(databaseObjects_[database_i].image_, t_it->image_, databaseObjects_[database_i].database_feature_keypoints_, databaseObjects_[database_i].database_feature_descriptors_, temp_img_matches, temp_template_points, temp_search_points, temp_matches);
+
+                if(database_i == 0)
+                {
+                    training_image_matches = temp_matches;
+                    training_image_template_points = temp_template_points;
+                    training_image_search_points = temp_search_points;
+                }
+                else
+                {
+                    training_image_template_points.insert(training_image_template_points.end(), temp_template_points.begin(), temp_template_points.end());
+                    training_image_search_points.insert(training_image_search_points.end(), temp_search_points.begin(), temp_search_points.end());
+                    training_image_matches.insert(training_image_matches.end(), temp_matches.begin(), temp_matches.end());
+
+                }
+
+
+            }
+
+            std::cout<<"no of feature matches per training image : "<<training_image_matches.size()<<std::endl;
 
 
             //create the association between matches of the same features and store them in the vector of vector of doubles
             std::vector<float> match_distances_per_image;
-            for(std::vector<cv::DMatch>::iterator m_it = temp_matches.begin(); m_it != temp_matches.end(); m_it++)
+            for(std::vector<cv::DMatch>::iterator m_it = training_image_matches.begin(); m_it != training_image_matches.end(); m_it++)
             {
                 match_distances_per_image.push_back(m_it->distance);
             }
