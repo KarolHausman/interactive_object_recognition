@@ -185,4 +185,29 @@ void ObjectsDatabase::printDatabases()
 
 }
 
+  /*
+  * Saves all the databaseObjects_ into a file called file_name
+  */
+void ObjectsDatabase::saveModels(const std::string& file_name)
+{
+    //iterate through all database objects
+    for (std::vector<ObjectData>::iterator it = databaseObjects_.begin(); it != databaseObjects_.end(); it++)
+    {
+        //get the name and the pose of the respective object and save it
+        ROS_INFO_STREAM("ID: "<<it->id_<<", Pose: "<<it->pose_);
+
+        //save the image
+         it->image_;
+         //save the vector of keypoints in the database image
+         it->database_feature_keypoints_;
+         //save the descriptors associated with the keypoints
+         it->database_feature_descriptors_;
+         //save the vector of vectors that contains our feature errors obtained through training
+         it->training_matches_;
+
+    }
+}
+
+
+
 

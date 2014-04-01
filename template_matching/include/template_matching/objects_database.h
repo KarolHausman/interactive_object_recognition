@@ -19,6 +19,7 @@ public:
     void printDatabases();
     void createTrainingDatabase(TemplateLibrary& templateLibrary);
     void trainDatabase();
+    void saveModels(const std::string& file_name);
 
 
 
