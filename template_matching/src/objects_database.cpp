@@ -1,5 +1,10 @@
 #include <template_matching/objects_database.h>
 #include <numeric>
+#include <fstream>
+#include <highgui.h>
+#include <cv.h>
+#include <boost/foreach.hpp>
+#include <boost/tokenizer.hpp>
 
 void ObjectsDatabase::addObject(const ObjectData &object)
 {
@@ -165,6 +170,7 @@ void ObjectsDatabase::printDatabases()
 
     }
 
+    /*
     ROS_INFO("TRAINING DATABASE OBJECTS: ");
     for (std::vector<ObjectData>::iterator it = trainingObjects_.begin(); it != trainingObjects_.end(); it++)
     {
@@ -182,30 +188,124 @@ void ObjectsDatabase::printDatabases()
             ROS_INFO_STREAM("No of keypoints: "<<it->database_feature_keypoints_.size()<<", No of descriptors: "<<it->database_feature_descriptors_.rows);
         }
     }
-
+    */
 }
+
+void ObjectsDatabase::loadModels(const std::string& file_name)
+{
+
+    std::string line;
+    std::ifstream myfile (file_name.c_str());
+
+    boost::char_separator<char> sep(", ");
+
+
+    if (myfile.is_open())
+    {
+        ObjectData object;
+        bool first_iter = true;
+
+        std::vector < std::vector<float> > features_with_matches;
+
+        while ( std::getline(myfile,line) )
+        {
+            if(isalpha( ( line.at(0) ) ))
+            {
+
+                if(!first_iter)
+                {
+                    object.training_matches_ = features_with_matches;
+
+                    //load the descriptors
+                    std::stringstream jpg_stream;
+                    jpg_stream << object.id_ << "_" << object.pose_ <<".jpg";
+                    cv::Mat temp = cv::imread(jpg_stream.str());
+                    cv::Mat descriptors_image;
+                    cv::cvtColor( temp, descriptors_image, CV_BGR2GRAY );
+
+                    object.database_feature_descriptors_ = descriptors_image;
+
+
+                    databaseObjects_.push_back(object);
+
+                    //clean the object
+                    object.training_matches_.clear();
+                    features_with_matches.clear();
+
+                }
+                first_iter = false;
+
+                boost::tokenizer< boost::char_separator<char> > tokens(line, sep);
+                std::string id = *(tokens.begin());
+                std::string pose_str = *(++tokens.begin());
+                int pose = atoi(pose_str.c_str());
+                object.id_ = id;
+                object.pose_ = static_cast<POSE>(pose);
+                std::cout<< "pose: " <<pose << "id: " <<id << std::endl;
+            }
+            else
+            {
+                //extract the matching errors
+                std::vector<float> matching_per_feature;
+
+                boost::tokenizer< boost::char_separator<char> > tokens(line, sep);
+                BOOST_FOREACH (const std::string& t, tokens)
+                {
+                  float matching = boost::lexical_cast<float>(t);
+                  matching_per_feature.push_back(matching);
+                }
+                features_with_matches.push_back(matching_per_feature);
+            }
+        }
+        //after last iteration
+        object.training_matches_ = features_with_matches;
+        std::stringstream jpg_stream;
+        jpg_stream << object.id_ << "_" << object.pose_ <<".jpg";
+        cv::Mat temp = cv::imread(jpg_stream.str());
+        cv::Mat descriptors_image;
+        cv::cvtColor( temp, descriptors_image, CV_BGR2GRAY );
+
+        object.database_feature_descriptors_ = descriptors_image;
+
+        databaseObjects_.push_back(object);
+
+        myfile.close();
+    }
+}
+
+
 
   /*
   * Saves all the databaseObjects_ into a file called file_name
   */
 void ObjectsDatabase::saveModels(const std::string& file_name)
 {
+    std::ofstream myfile;
+    myfile.open (file_name.c_str());
+
+
     //iterate through all database objects
     for (std::vector<ObjectData>::iterator it = databaseObjects_.begin(); it != databaseObjects_.end(); it++)
     {
         //get the name and the pose of the respective object and save it
-        ROS_INFO_STREAM("ID: "<<it->id_<<", Pose: "<<it->pose_);
+        myfile << it->id_ << ", " << it->pose_ << "\n";
 
-        //save the image
-         it->image_;
-         //save the vector of keypoints in the database image
-         it->database_feature_keypoints_;
-         //save the descriptors associated with the keypoints
-         it->database_feature_descriptors_;
-         //save the vector of vectors that contains our feature errors obtained through training
-         it->training_matches_;
+        for (uint i = 0; i < it->training_matches_.size(); i++)
+        {
+            for (uint m_i = 0; m_i < it->training_matches_[i].size(); m_i++)
+            {
+                myfile << it->training_matches_[i][m_i] << ", ";
+            }
+            myfile << "\n";
+        }
+        std::stringstream jpg_stream;
+        jpg_stream << it->id_ << "_" << it->pose_ <<".jpg";
+        cv::imwrite(jpg_stream.str(), it->database_feature_descriptors_);
 
     }
+
+    myfile.close();
+
 }
 
 

@@ -20,6 +20,8 @@ public:
     void createTrainingDatabase(TemplateLibrary& templateLibrary);
     void trainDatabase();
     void saveModels(const std::string& file_name);
+    void loadModels(const std::string& file_name);
+
 
 
 

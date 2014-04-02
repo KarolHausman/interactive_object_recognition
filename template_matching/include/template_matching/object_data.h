@@ -17,6 +17,7 @@ class ObjectData
 {
 public:
 
+    ObjectData();
     ObjectData(const std::string& id, const POSE& pose, const cv::Mat& image, const std::vector <cv::KeyPoint>& keypoints, cv::Mat& descriptors);
     virtual ~ObjectData(){}
     void train(){}

@@ -18,3 +18,5 @@ void ObjectData::setDatabaseFeatures(const std::vector <cv::KeyPoint>& keypoints
 }
 
 
+ObjectData::ObjectData()
+{}
