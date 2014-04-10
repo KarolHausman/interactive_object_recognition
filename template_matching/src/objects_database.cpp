@@ -66,7 +66,7 @@ void ObjectsDatabase::trainDatabase()
 
             }
 
-            std::cout<<"no of feature matches per training image : "<<training_image_matches.size()<<std::endl;
+//            std::cout<<"no of feature matches per training image : "<<training_image_matches.size()<<std::endl;
 
 
             //create the association between matches of the same features and store them in the vector of vector of doubles
@@ -119,7 +119,7 @@ void ObjectsDatabase::createDatabase(TemplateLibrary& templateLibrary)
         cv::Mat temp_descriptors;
         matcher_.getFeatures(it->image_, temp_keypoints, temp_descriptors);
 
-        ObjectData object(it->name_, static_cast<POSE>(it->pose_ - 1), it->image_, temp_keypoints, temp_descriptors);
+        ObjectData object(it->name_, static_cast<POSE>(it->pose_), it->image_, temp_keypoints, temp_descriptors);
         databaseObjects_.push_back(object);
 
     }
@@ -138,7 +138,7 @@ void ObjectsDatabase::createTrainingDatabase(TemplateLibrary& templateLibrary)
         matcher_.getFeatures(it->image_, temp_keypoints, temp_descriptors);
 
 
-        ObjectData trainingObject(it->name_, static_cast<POSE>((it->pose_ - 1)%(int)POSE_COUNT), it->image_, temp_keypoints, temp_descriptors);
+        ObjectData trainingObject(it->name_, static_cast<POSE>((it->pose_)%(int)POSE_COUNT), it->image_, temp_keypoints, temp_descriptors);
         trainingObjects_.push_back(trainingObject);
     }
 
@@ -150,9 +150,26 @@ void ObjectsDatabase::createTrainingDatabase(TemplateLibrary& templateLibrary)
         trainingObjectsArranged_.push_back(objects_of_the_same_pair);
     }
 
-    for(uint i = 0; i < trainingObjects_.size(); i++)
+    for(uint i = 0; i < databaseObjects_.size(); i++)
     {
-        trainingObjectsArranged_[i%databaseObjects_.size()].push_back(trainingObjects_[i]);
+
+        for(uint j = 0; j < trainingObjects_.size(); j++)
+        {
+            if(trainingObjects_[j].id_ == "used")
+            {
+                continue;
+            }
+
+            if(( trainingObjects_ [j].id_ == databaseObjects_ [i].id_ ) && ( trainingObjects_ [j].pose_ == databaseObjects_[i].pose_))
+            {
+                trainingObjectsArranged_[i].push_back(trainingObjects_ [j]);
+                trainingObjects_[j].id_ = "used";
+            }
+        }
+
+//        trainingObjectsArranged_[i % (databaseObjects_.size())].push_back(trainingObjects_[i]);
+//        std::cout<< "position in arranged = " << i% (databaseObjects_.size()) <<std::endl;
+//        std::cout<< "pushing object number: " << i <<std::endl;
     }
 
 }
@@ -164,19 +181,22 @@ void ObjectsDatabase::printDatabases()
     {
         ROS_INFO_STREAM("ID: "<<it->id_<<", Pose: "<<it->pose_);
         ROS_INFO_STREAM("No of keypoints: "<<it->database_feature_keypoints_.size()<<", No of descriptors: "<<it->database_feature_descriptors_.rows);
-        ROS_INFO_STREAM("No of features in training matches: "<<it->training_matches_.size());
-        ROS_INFO_STREAM("No of matches per feature in training matches: "<<it->training_matches_[0].size());
+//        ROS_INFO_STREAM("No of features in training matches: "<<it->training_matches_.size());
+//        ROS_INFO_STREAM("No of matches per feature in training matches: "<<it->training_matches_[0].size());
+//        cv::imshow("database_object", it->image_);
+//        cv::waitKey(0);
 
 
     }
 
-    /*
+
     ROS_INFO("TRAINING DATABASE OBJECTS: ");
     for (std::vector<ObjectData>::iterator it = trainingObjects_.begin(); it != trainingObjects_.end(); it++)
     {
         ROS_INFO_STREAM("ID: "<<it->id_<<", Pose: "<<it->pose_);
         ROS_INFO_STREAM("No of keypoints: "<<it->database_feature_keypoints_.size()<<", No of descriptors: "<<it->database_feature_descriptors_.rows);
     }
+
 
     ROS_INFO("ARRANGED TRAINING DATABASE OBJECTS: ");
     for (uint i = 0; i < trainingObjectsArranged_.size(); i++)
@@ -186,9 +206,11 @@ void ObjectsDatabase::printDatabases()
         {
             ROS_INFO_STREAM("ID: "<<it->id_<<", Pose: "<<it->pose_);
             ROS_INFO_STREAM("No of keypoints: "<<it->database_feature_keypoints_.size()<<", No of descriptors: "<<it->database_feature_descriptors_.rows);
+//            cv::imshow("object", it->image_);
+//            cv::waitKey(0);
         }
     }
-    */
+
 }
 
 void ObjectsDatabase::loadModels(const std::string& file_name)
@@ -241,7 +263,7 @@ void ObjectsDatabase::loadModels(const std::string& file_name)
                 int pose = atoi(pose_str.c_str());
                 object.id_ = id;
                 object.pose_ = static_cast<POSE>(pose);
-                std::cout<< "pose: " <<pose << "id: " <<id << std::endl;
+//                std::cout<< "pose: " <<pose << "id: " <<id << std::endl;
             }
             else
             {
@@ -297,6 +319,7 @@ void ObjectsDatabase::saveModels(const std::string& file_name)
                 myfile << it->training_matches_[i][m_i] << ", ";
             }
             myfile << "\n";
+            myfile.flush();
         }
         std::stringstream jpg_stream;
         jpg_stream << it->id_ << "_" << it->pose_ <<".jpg";

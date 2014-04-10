@@ -30,6 +30,8 @@ private:
 
     std::vector<ObjectData> databaseObjects_;
     std::vector<ObjectData> trainingObjects_;
+
+    //vector of object-pose pair vectors where each ObjectData is one training sample
     std::vector<std::vector<ObjectData> > trainingObjectsArranged_;
 
 

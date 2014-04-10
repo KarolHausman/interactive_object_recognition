@@ -24,7 +24,7 @@ int main(int argc, char **argv)
         std::string training_data_directory = package_path + "/training_data/";
 
 
-        library.generateTemplateData(source_directory, data_directory);
+//        library.generateTemplateData(source_directory, data_directory);
 
         library.generateTemplateData(training_directory, training_data_directory);
 

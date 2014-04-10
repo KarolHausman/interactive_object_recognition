@@ -8,8 +8,10 @@
 
 enum POSE
 {
-    Z_UP_0,
-    Z_UP_180,    
+    Z_DOWN,
+    Z_DOWN_SPINE,
+    Z_UP_SPINE,
+    Z_UP,
     POSE_COUNT
 };
 

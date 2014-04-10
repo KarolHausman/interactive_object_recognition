@@ -11,17 +11,17 @@ int main (int argc, char** argv)
     ros::NodeHandle nh("~") ;
 
     ObjectsDatabase database;
-//    TemplateLibrary library;
-//    database.createDatabase(library);
-//    database.createTrainingDatabase(library);
-
-
-//    database.trainDatabase();
+    TemplateLibrary library;
+    database.createDatabase(library);
+    database.createTrainingDatabase(library);
 //    database.printDatabases();
-//    database.saveModels("models3.txt");
 
-    database.loadModels("models3.txt");
+    database.trainDatabase();
     database.printDatabases();
+    database.saveModels("MODEL_SIFT_STANDARD.txt");
+
+//    database.loadModels("models3.txt");
+//    database.printDatabases();
 
     ros::Rate loop_rate (30);
     while (ros::ok())
