@@ -24,11 +24,11 @@ public:
 
 
 
+    std::vector<ObjectData> databaseObjects_;
 
 private:
     void fit1DGaussianToData(const std::vector<float>& v, double& m, double& stdev);
 
-    std::vector<ObjectData> databaseObjects_;
     std::vector<ObjectData> trainingObjects_;
 
     //vector of object-pose pair vectors where each ObjectData is one training sample

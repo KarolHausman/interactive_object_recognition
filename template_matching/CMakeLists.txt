@@ -38,7 +38,7 @@ target_link_libraries(template_matching boost_filesystem boost_system)
 rosbuild_link_boost(template_matching signals)
 
 
-rosbuild_add_executable(probabilistic_matching src/main_probabilistic.cpp src/objects_database.cpp src/object_data.cpp)
+rosbuild_add_executable(probabilistic_matching src/main_probabilistic.cpp src/objects_database.cpp src/object_data.cpp src/probabilisticmatcher.cpp)
 target_link_libraries(probabilistic_matching matching ransac_transformation template_library_lib pcd_io)
 target_link_libraries(probabilistic_matching boost_filesystem boost_system)
 rosbuild_link_boost(probabilistic_matching signals)
