@@ -189,7 +189,7 @@ void ObjectsDatabase::printDatabases()
 
     }
 
-
+/*
     ROS_INFO("TRAINING DATABASE OBJECTS: ");
     for (std::vector<ObjectData>::iterator it = trainingObjects_.begin(); it != trainingObjects_.end(); it++)
     {
@@ -210,11 +210,13 @@ void ObjectsDatabase::printDatabases()
 //            cv::waitKey(0);
         }
     }
-
+*/
 }
 
 void ObjectsDatabase::loadModels(const std::string& file_name)
 {
+    databaseObjects_.clear();
+
 
     std::string line;
     std::ifstream myfile (file_name.c_str());
@@ -263,6 +265,7 @@ void ObjectsDatabase::loadModels(const std::string& file_name)
                 int pose = atoi(pose_str.c_str());
                 object.id_ = id;
                 object.pose_ = static_cast<POSE>(pose);
+
 //                std::cout<< "pose: " <<pose << "id: " <<id << std::endl;
             }
             else
@@ -288,6 +291,7 @@ void ObjectsDatabase::loadModels(const std::string& file_name)
         cv::cvtColor( temp, descriptors_image, CV_BGR2GRAY );
 
         object.database_feature_descriptors_ = descriptors_image;
+
 
         databaseObjects_.push_back(object);
 

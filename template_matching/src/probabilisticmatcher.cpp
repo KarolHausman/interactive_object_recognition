@@ -57,6 +57,14 @@ void ProbabilisticMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& clo
         match_distances_per_image.push_back(m_it->distance);
     }
 //    match_distances.push_back(match_distances_per_image);
+    matches_per_image_ = match_distances_per_image;
+
+    std::cout<< "Features:" <<std::endl;
+
+    for(uint i = 0; i < matches_per_image_.size(); i++)
+    {
+        std::cout << matches_per_image_[i] <<", ";
+    }
 
 
 }

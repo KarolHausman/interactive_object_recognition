@@ -19,7 +19,7 @@ public:
     ros::Subscriber cloud_subscriber_;
     ObjectsDatabase* objects_database_;
     TemplateLibrary template_library_;
-
+    std::vector<float> matches_per_image_;
 
 
 
