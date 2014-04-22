@@ -11,6 +11,7 @@ ProbabilisticMatcher::ProbabilisticMatcher(ros::NodeHandle &nh, ObjectsDatabase*
 
     cloud_subscriber_ = nh.subscribe("/camera/depth_registered/points", 1, &ProbabilisticMatcher::cloudCallback, this);
     publisher_ = image_transport_.advertise (image_matches_topic, 1);
+    std::cout<< "probabilistic matcher constructor" << std::endl;
 
 
 
@@ -18,8 +19,6 @@ ProbabilisticMatcher::ProbabilisticMatcher(ros::NodeHandle &nh, ObjectsDatabase*
 
 void ProbabilisticMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg)
 {
-
-
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr dense_cloud_color_ptr (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::fromROSMsg(*cloud_msg,*dense_cloud_color_ptr);
     cv::Mat query_image = template_library_.restoreCVMatFromPointCloud(dense_cloud_color_ptr);
@@ -35,6 +34,8 @@ void ProbabilisticMatcher::cloudCallback (const sensor_msgs::PointCloud2Ptr& clo
     {
 
         matcher_.getDescriptorMatches(objects_database_->databaseObjects_[database_i].image_, query_image, objects_database_->databaseObjects_[database_i].database_feature_keypoints_, objects_database_->databaseObjects_[database_i].database_feature_descriptors_, temp_img_matches, temp_template_points, temp_search_points, temp_matches);
+
+        std::cout<< "size of matches: " << temp_matches.size() << std::endl;
 
         if(database_i == 0)
         {

@@ -241,13 +241,20 @@ void ObjectsDatabase::loadModels(const std::string& file_name)
                     object.training_matches_ = features_with_matches;
 
                     //load the descriptors
-                    std::stringstream jpg_stream;
-                    jpg_stream << object.id_ << "_" << object.pose_ <<".jpg";
-                    cv::Mat temp = cv::imread(jpg_stream.str());
-                    cv::Mat descriptors_image;
-                    cv::cvtColor( temp, descriptors_image, CV_BGR2GRAY );
+//                    std::stringstream jpg_stream;
+//                    jpg_stream << object.id_ << "_" << object.pose_ <<".jpg";
+//                    cv::Mat temp = cv::imread(jpg_stream.str());
+//                    cv::Mat descriptors_image;
+//                    cv::cvtColor( temp, descriptors_image, CV_BGR2GRAY );
 
-                    object.database_feature_descriptors_ = descriptors_image;
+//                    object.database_feature_descriptors_ = descriptors_image;
+
+                    std::stringstream features_stream;
+                    features_stream << object.id_ << "_" << object.pose_ <<".yml";
+                    cv::FileStorage fs(features_stream.str(), cv::FileStorage::READ);
+//                    fs["keypoints"] >> object.database_feature_keypoints_;
+                    fs["descriptors"] >> object.database_feature_descriptors_;
+
 
 
                     databaseObjects_.push_back(object);
@@ -284,13 +291,19 @@ void ObjectsDatabase::loadModels(const std::string& file_name)
         }
         //after last iteration
         object.training_matches_ = features_with_matches;
-        std::stringstream jpg_stream;
-        jpg_stream << object.id_ << "_" << object.pose_ <<".jpg";
-        cv::Mat temp = cv::imread(jpg_stream.str());
-        cv::Mat descriptors_image;
-        cv::cvtColor( temp, descriptors_image, CV_BGR2GRAY );
+//        std::stringstream jpg_stream;
+//        jpg_stream << object.id_ << "_" << object.pose_ <<".jpg";
+//        cv::Mat temp = cv::imread(jpg_stream.str());
+//        cv::Mat descriptors_image;
+//        cv::cvtColor( temp, descriptors_image, CV_BGR2GRAY );
 
-        object.database_feature_descriptors_ = descriptors_image;
+//        object.database_feature_descriptors_ = descriptors_image;
+
+        std::stringstream features_stream;
+        features_stream << object.id_ << "_" << object.pose_ <<".yml";
+        cv::FileStorage fs(features_stream.str(), cv::FileStorage::READ);
+//        fs["keypoints"] >> object.database_feature_keypoints_;
+        fs["descriptors"] >> object.database_feature_descriptors_;
 
 
         databaseObjects_.push_back(object);
@@ -325,9 +338,17 @@ void ObjectsDatabase::saveModels(const std::string& file_name)
             myfile << "\n";
             myfile.flush();
         }
-        std::stringstream jpg_stream;
-        jpg_stream << it->id_ << "_" << it->pose_ <<".jpg";
-        cv::imwrite(jpg_stream.str(), it->database_feature_descriptors_);
+//        std::stringstream jpg_stream;
+//        jpg_stream << it->id_ << "_" << it->pose_ <<".jpg";
+//        cv::imwrite(jpg_stream.str(), it->database_feature_descriptors_);
+
+
+        std::stringstream features_stream;
+        features_stream << it->id_ << "_" << it->pose_ <<".yml";
+        cv::FileStorage fs(features_stream.str(), cv::FileStorage::WRITE);
+        cv::write(fs, "keypoints", it->database_feature_keypoints_);
+        cv::write(fs, "descriptors", it->database_feature_descriptors_);
+        fs.release();
 
     }
 
