@@ -18,10 +18,10 @@ int main(int argc, char **argv)
 //        library.generateTemplateData();
         ros::Rate loop_rate (30);
         while (ros::ok())
-        {
+        {            
             saver.spinVisualizer();
-            ros::spinOnce ();
-            loop_rate.sleep ();
+            ros::spinOnce ();            
+            loop_rate.sleep ();         
         }
 }
 

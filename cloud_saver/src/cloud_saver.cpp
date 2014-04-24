@@ -13,10 +13,13 @@ CloudSaver::CloudSaver():
     nh_ ("~/cloud_saver"),
     visualizer_(),
     reconfig_srv_(nh_),
-    input_cloud_ptr_ (new pcl::PointCloud<pcl::PointXYZRGB>)
+    input_cloud_ptr_ (new pcl::PointCloud<pcl::PointXYZRGB>),
+    cloud_number_(0)
 {
     reconfig_callback_ = boost::bind (&CloudSaver::reconfigCallback, this, _1, _2);
     reconfig_srv_.setCallback (reconfig_callback_);
+
+
 
     cloud_subscriber_ = nh_.subscribe("/camera/depth_registered/points", 1, &CloudSaver::cloudCallback, this);
 }
@@ -35,10 +38,15 @@ void CloudSaver::cloudCallback (const sensor_msgs::PointCloud2Ptr& cloud_msg)
 void CloudSaver::reconfigCallback (cloud_saver::SaverConfig&config, uint32_t level)
 {
     cloud_name_ = config.cloud_name;
+    cloud_number_ ++;
 
     if(config.save_cloud)
-    {
-        pcl::io::savePCDFile(cloud_name_,*input_cloud_ptr_);
+    {        
+        std::stringstream ststream;
+        ststream << cloud_name_;
+        ststream << "/" << cloud_number_ << ".pcd";
+
+        pcl::io::savePCDFile(ststream.str(), *input_cloud_ptr_);
         config.save_cloud=false;
     }
 

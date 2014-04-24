@@ -43,6 +43,8 @@ private:
     std::string cloud_name_;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr input_cloud_ptr_;
 
+    int cloud_number_;
+
 
 
 
