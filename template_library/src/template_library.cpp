@@ -96,32 +96,39 @@ void TemplateLibrary::loadClouds(const std::string& source_directory)
 
         pcl::io::loadPCDFile(filenames_[i].second, *cloud_input);
 
-        pcl::copyPointCloud(*cloud_input,*cloud_for_dense);
+//        pcl::copyPointCloud(*cloud_input,*cloud_for_dense);
 
         std::cout<<"filenames loop" <<std::endl;
 
-        clouds_dense_.push_back(cloud_for_dense);
-        clouds_input_.push_back(cloud_input);
-        names_.push_back(filenames_[i].first);
+//        clouds_dense_.push_back(cloud_for_dense);
+//        clouds_input_.push_back(cloud_input);
+//        names_.push_back(filenames_[i].first);
+
+        cv::Mat image=restoreCVMatFromPointCloud(cloud_input);
+
+        Template temp(image, filenames_[i].first);
+        templates_.push_back(temp);
+
     }
+
 }
 
 void TemplateLibrary::generateTemplateData(const std::string& source_directory, const std::string& data_directory)
 {
     loadClouds(source_directory);
 
-    for(uint i=0;i<clouds_input_.size();i++)
-    {
+//    for(uint i=0;i<clouds_input_.size();i++)
+//    {
 
-        pcl::PointIndices template_inliers;
-        generateTemplateDataEuclidean(clouds_input_[i],clouds_dense_[i],template_inliers);
-        cv::Mat image_no_plane=restoreCVMatNoPlaneFromPointCloud(*clouds_input_[i],template_inliers);
-        cv::Mat image=restoreCVMatFromPointCloud(clouds_input_[i]);
+//        pcl::PointIndices template_inliers;
+//        generateTemplateDataEuclidean(clouds_input_[i],clouds_dense_[i],template_inliers);
+//        cv::Mat image_no_plane=restoreCVMatNoPlaneFromPointCloud(*clouds_input_[i],template_inliers);
+//        cv::Mat image=restoreCVMatFromPointCloud(clouds_input_[i]);
 
-        Template temp(image,image_no_plane,clouds_input_[i],clouds_dense_[i],names_[i]);
-        templates_.push_back(temp);
-        std::cout<<"generate templates data" << std::endl;
-    }
+//        Template temp(image,image_no_plane,clouds_input_[i],clouds_dense_[i],names_[i]);
+//        templates_.push_back(temp);
+//        std::cout<<"generate templates data" << std::endl;
+//    }
     saveTemplates(data_directory);
 
 }
@@ -143,10 +150,10 @@ void TemplateLibrary::saveTemplates(const std::string& data_directory)
         generateNames(data_directory,i,ss_image,ss_no_plane_image,ss_cloud_rgb,ss_cloud_inliers);
 
         ROS_DEBUG_STREAM(ss_cloud_rgb.str());
-        pcl::io::savePCDFile(ss_cloud_inliers.str(),*temp.cloud_with_inliers_ptr_);
-        pcl::io::savePCDFile(ss_cloud_rgb.str(),*temp.cloud_ptr_);
+//        pcl::io::savePCDFile(ss_cloud_inliers.str(),*temp.cloud_with_inliers_ptr_);
+//        pcl::io::savePCDFile(ss_cloud_rgb.str(),*temp.cloud_ptr_);
         cv::imwrite( ss_image.str(), temp.image_);
-        cv::imwrite( ss_no_plane_image.str(), temp.no_plane_image_);
+//        cv::imwrite( ss_no_plane_image.str(), temp.no_plane_image_);
 
     }
     templates_.clear();
