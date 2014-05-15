@@ -271,7 +271,9 @@ bool FeatureMatching::getDescriptorMatches (const cv::Mat& template_image, const
       std::cout<< "size of search descriptors(rows): " << search_descriptors.rows << std::endl;
       std::cout<< "size of search descriptors(cols): " << search_descriptors.cols << std::endl;
 
-      feature_matcher_ptrs_[descriptor_matcher_]->match (template_descriptors, search_descriptors, matches);
+      std::cout<< "Matcher nr: " << 3 << std::endl;
+
+      feature_matcher_ptrs_[3]->match (template_descriptors, search_descriptors, matches);
 
 
 
